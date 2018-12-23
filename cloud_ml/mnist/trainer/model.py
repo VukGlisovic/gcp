@@ -1,0 +1,63 @@
+import tensorflow as tf
+import logging
+
+
+def input_fn(train_features_file, label_features_file, epochs=1, batch_size=32, buffer_size=50):
+    feature_dataset = tf.data.TextLineDataset(train_features_file)
+    label_dataset = tf.data.TextLineDataset(label_features_file)
+    dataset = tf.data.Dataset.zip((feature_dataset, label_dataset))
+    dataset.shuffle(buffer_size)
+    dataset.batch(batch_size)
+    dataset.repeat(epochs)
+    return dataset
+
+
+def model_fn(features, labels, mode, params=None):
+    """Model for the mnist dataset; multiple convolutional layers with
+    pooling layers and dense layers at the end. There's 10 possible classes
+    to predict; digits 0, 1, ..., 9.
+
+    Args:
+        features (list): array with dimension (None, 28, 28)
+        labels (list): 1-dimensional array with dimension
+        mode (str): whether to predict, train or evaluate
+        params (dict): additional parameters to be used in the model
+
+    Returns:
+        tf.estimator.EstimatorSpec
+    """
+    feature_inputs = tf.feature_column.input_layer(features)
+    conv1 = tf.layers.Conv2D(filters=16, kernel_size=(5, 5), strides=(1, 1), name='conv1')(feature_inputs)
+    max_pool1 = tf.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2), name='maxpool1')(conv1)
+    conv2 = tf.layers.Conv2D(filters=16, kernel_size=(5, 5), strides=(1, 1), name='conv2')(max_pool1)
+    max_pool2 = tf.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2), name='maxpool2')(conv2)
+    flattened = tf.layers.Flatten(name='flatten')(max_pool2)
+    dense1 = tf.layers.Dense(units=256, activation='relu', name='dense1')(flattened)
+    dropout1 = tf.layers.Dropout(rate=0.5)(dense1)
+    dense2 = tf.layers.Dense(units=128, activation='relu', name='dense2')(dropout1)
+    probabilities = tf.layers.Dense(units=10, activation='softmax', name='softmax')(dense2)
+    prediction = tf.argmax(probabilities, axis=1, name='argmax')
+
+    if mode == tf.estimator.ModeKeys.PREDICT:
+        prediction_results = dict(classes=prediction, probabilities=probabilities)
+        return tf.estimator.EstimatorSpec(mode, prediction_results)
+
+    loss = tf.losses.sparse_softmax_cross_entropy(labels, probabilities)
+    accuracy = tf.metrics.accuracy(labels, prediction, name='accuracy')
+
+    if mode == tf.estimator.ModeKeys.TRAIN:
+        # Create the optimizer
+        learning_rate = params.get('learning_rate') or 0.0001
+        optimizer = tf.train.AdamOptimizer()
+        train_op = optimizer.minimize(loss, global_step=tf.train.get_or_create_global_step())
+
+        # Name tensors to be logged with LoggingTensorHook.
+        tf.identity(learning_rate, 'learning_rate')
+        tf.identity(loss, 'cross_entropy')
+        tf.identity(accuracy[1], name='train_accuracy')
+        return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_op)
+
+    if mode == tf.estimator.ModeKeys.EVAL:
+        # Create metrics for evaluation
+        eval_metrics_ops = {'accuracy': accuracy}
+        return tf.estimator.EstimatorSpec(mode, prediction, loss, eval_metric_ops=eval_metrics_ops)
