@@ -87,69 +87,43 @@ def write_tf_records(feature_data, label_data, output_dir='train/'):
             writer.write(example.SerializeToString())
 
 
-def read_example_for_verification():
-    """Method for checking the data files. It visualizes
-    a little bit of the data.
+def visualize_examples():
+    """Simply visualizes a few examples to check the validity.
     """
-    # Read and print data:
     sess = tf.InteractiveSession()
-
-    # Read TFRecord file
-    reader = tf.TFRecordReader()
-    filename_queue = tf.train.string_input_producer(['test/data.tfrecord'])
-
-    _, serialized_example = reader.read(filename_queue)
-
-    # Define features
-    # Tensorflow does not allow to decode with dtype=tf.uint8, therefore use tf.int64
-    read_features = {
-        'image': tf.FixedLenFeature([], dtype=tf.string),
-        'label': tf.FixedLenFeature([], dtype=tf.int64)
-    }
-
-    # Extract features from serialized data
-    read_data = tf.parse_single_example(serialized=serialized_example,
-                                        features=read_features)
-
-    # Many tf.train functions use tf.train.QueueRunner,
-    # so we need to start it before we read
-    tf.train.start_queue_runners(sess)
-
-    # Print features
-    image = tf.decode_raw(read_data['image'], tf.uint8)
-    label = read_data['label']
-    # make sure to evaluate both tensors at the same time. Otherwise one of the two will go to their next value
+    test_features_path = '../data/test/features.tfrecord'
+    test_labels_path = '../data/test/labels.tfrecord'
+    dataset = model.input_fn(test_features_path, test_labels_path, batch_size=1, buffer_size=1)
+    dataset = dataset.make_one_shot_iterator()
     for i in xrange(3):
+        image, label = sess.run(dataset.get_next())
         print("Visualizing number.")
-        vis_image, vis_label = sess.run([image, label])
-        # Visualize the number
-        for row in vis_image.reshape((28, 28)):
+        # Visualize the number (since it's a batch, image is a 3D array)
+        for row in image[0]:
             print(" ".join(list(map(lambda v: 'X' if v else '_', row))))
-        print(vis_label)
+        print(label[0])
         print('')
 
 
-def visualize_examples():
-    tf.enable_eager_execution()
-
-
-
 def main():
+    train_filepath = '../data/train'
+    test_filepath = '../data/test'
+
     # logging.info("Downloading mnist data.")
     # (Xtrain, ytrain), (Xtest, ytest) = tf.keras.datasets.mnist.load_data()
     #
     # logging.info("Storing training data.")
-    # if not os.path.exists('train'):
-    #     os.mkdir('train')
-    # write_tf_records(Xtrain, ytrain, 'train/')
+    # if not os.path.exists(train_filepath):
+    #     os.mkdir(train_filepath)
+    # write_tf_records(Xtrain, ytrain, train_filepath)
     #
     # logging.info("Storing testing data.")
-    # if not os.path.exists('test'):
-    #     os.mkdir('test')
-    # write_tf_records(Xtest, ytest, 'test/')
+    # if not os.path.exists(test_filepath):
+    #     os.mkdir(test_filepath)
+    # write_tf_records(Xtest, ytest, test_filepath)
 
     logging.info("Verifying stored data.")
-    read_example_for_verification()
+    visualize_examples()
 
 
 if __name__ == '__main__':

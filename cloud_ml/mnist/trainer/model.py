@@ -1,25 +1,70 @@
 import tensorflow as tf
 
 
+READ_FEATURES = {'image': tf.FixedLenFeature([], dtype=tf.string)}
+READ_LABELS = {'label': tf.FixedLenFeature([], dtype=tf.int64)}
+
+
 def decode_image(image):
-    decoded_image = tf.decode_raw(image, tf.uint8)
+    """Parsing logic for decoding a tensorflow record containing
+    feature data. In summary it does:
+    1) parse
+    2) decode
+    3) reshape to the image shape
+    4) convert to floats
+    5) divide by max float in the image
+
+    Args:
+        image (tf.Tensor):
+
+    Returns:
+        tf.Tensor
+    """
+    parsed_features = tf.parse_single_example(serialized=image, features=READ_FEATURES)['image']
+    decoded_image = tf.decode_raw(parsed_features, tf.uint8)
     decoded_image = tf.reshape(decoded_image, shape=(28, 28), name='reshape_to_28x28')
     decoded_image = tf.cast(decoded_image, tf.float32)
     decoded_image = decoded_image / 255.0
     return decoded_image
 
 
+def decode_label(label):
+    """Parses the label from a tensorflow example.
+
+    Args:
+        label (tf.Tensor):
+
+    Returns:
+        tf.Tensor
+    """
+    parsed_label = tf.parse_single_example(serialized=label, features=READ_LABELS)['label']
+    return parsed_label
+
+
 def input_fn(features_file, labels_file, epochs=1, batch_size=32, buffer_size=50):
+    """Creates a dataset for training and evaluating your model.
+
+    Args:
+        features_file (str):
+        labels_file (str):
+        epochs (int):
+        batch_size (int):
+        buffer_size (int):
+
+    Returns:
+        tensorflow.python.data.ops.dataset_ops.RepeatDataset
+    """
+    # create the features Dataset
     features_dataset = tf.data.TFRecordDataset(features_file)
-    features_dataset.map(decode_image)
-
+    features_dataset = features_dataset.map(decode_image)
+    # create the labels Dataset
     labels_dataset = tf.data.TFRecordDataset(labels_file)
-
+    labels_dataset = labels_dataset.map(decode_label)
+    # zip the features and the labels dataset into one dataset
     dataset = tf.data.Dataset.zip((features_dataset, labels_dataset))
-
-    dataset.shuffle(buffer_size)
-    dataset.batch(batch_size)
-    dataset.repeat(epochs)
+    dataset = dataset.shuffle(buffer_size)
+    dataset = dataset.batch(batch_size)
+    dataset = dataset.repeat(epochs)
     return dataset
 
 
