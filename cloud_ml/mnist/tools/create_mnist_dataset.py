@@ -73,13 +73,13 @@ def write_tf_records(feature_data, label_data, output_dir='train/'):
         None
     """
     assert len(feature_data) == len(label_data), "feature_data must have same length as label_data"
-    # First writing feature data
+    logging.info("Storing images.")
     features_filepath = os.path.join(output_dir, 'features.tfrecord')
     with tf.python_io.TFRecordWriter(features_filepath) as writer:
         for i in range(len(feature_data)):
             example = create_features_example(feature_data[i])
             writer.write(example.SerializeToString())
-    # Second writing label data
+    logging.info("Storing labels.")
     labels_filepath = os.path.join(output_dir, 'labels.tfrecord')
     with tf.python_io.TFRecordWriter(labels_filepath) as writer:
         for i in range(len(feature_data)):
@@ -109,18 +109,18 @@ def main():
     train_filepath = '../data/train'
     test_filepath = '../data/test'
 
-    # logging.info("Downloading mnist data.")
-    # (Xtrain, ytrain), (Xtest, ytest) = tf.keras.datasets.mnist.load_data()
-    #
-    # logging.info("Storing training data.")
-    # if not os.path.exists(train_filepath):
-    #     os.mkdir(train_filepath)
-    # write_tf_records(Xtrain, ytrain, train_filepath)
-    #
-    # logging.info("Storing testing data.")
-    # if not os.path.exists(test_filepath):
-    #     os.mkdir(test_filepath)
-    # write_tf_records(Xtest, ytest, test_filepath)
+    logging.info("Downloading mnist data.")
+    (Xtrain, ytrain), (Xtest, ytest) = tf.keras.datasets.mnist.load_data()
+
+    logging.info("Storing training data.")
+    if not os.path.exists(train_filepath):
+        os.mkdir(train_filepath)
+    write_tf_records(Xtrain, ytrain, train_filepath)
+
+    logging.info("Storing testing data.")
+    if not os.path.exists(test_filepath):
+        os.mkdir(test_filepath)
+    write_tf_records(Xtest, ytest, test_filepath)
 
     logging.info("Verifying stored data.")
     visualize_examples()
