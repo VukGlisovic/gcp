@@ -2,6 +2,7 @@ from __future__ import print_function
 import os
 import logging
 import tensorflow as tf
+from trainer import model
 
 logging.basicConfig(level=logging.INFO)
 
@@ -128,19 +129,24 @@ def read_example_for_verification():
         print('')
 
 
+def visualize_examples():
+    tf.enable_eager_execution()
+
+
+
 def main():
-    logging.info("Downloading mnist data.")
-    (Xtrain, ytrain), (Xtest, ytest) = tf.keras.datasets.mnist.load_data()
-
-    logging.info("Storing training data.")
-    if not os.path.exists('train'):
-        os.mkdir('train')
-    write_tf_records(Xtrain, ytrain, 'train/')
-
-    logging.info("Storing testing data.")
-    if not os.path.exists('test'):
-        os.mkdir('test')
-    write_tf_records(Xtest, ytest, 'test/')
+    # logging.info("Downloading mnist data.")
+    # (Xtrain, ytrain), (Xtest, ytest) = tf.keras.datasets.mnist.load_data()
+    #
+    # logging.info("Storing training data.")
+    # if not os.path.exists('train'):
+    #     os.mkdir('train')
+    # write_tf_records(Xtrain, ytrain, 'train/')
+    #
+    # logging.info("Storing testing data.")
+    # if not os.path.exists('test'):
+    #     os.mkdir('test')
+    # write_tf_records(Xtest, ytest, 'test/')
 
     logging.info("Verifying stored data.")
     read_example_for_verification()
