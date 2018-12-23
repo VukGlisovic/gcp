@@ -2,7 +2,7 @@ from __future__ import print_function
 import os
 import logging
 import tensorflow as tf
-from trainer import model
+from cloud_ml.mnist.trainer import model
 
 logging.basicConfig(level=logging.INFO)
 
