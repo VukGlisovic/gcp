@@ -29,22 +29,67 @@ def _bytes_feature(value):
 #     return tf.train.Feature(float_list=tf.train.FloatList(value=[value]))
 
 
-def create_example(image, label):
-    feature = {'image': _bytes_feature(image),
-               'label': _int64_feature(label)}
+def create_features_example(image):
+    """Creates a tensorflow Example out of feature data. Which
+    is basically converting the image to a tensorflow record.
+
+    Args:
+        image (np.array):
+
+    Returns:
+        tf.train.Example
+    """
+    feature = {'image': _bytes_feature(image)}
     features = tf.train.Features(feature=feature)
     return tf.train.Example(features=features)
 
 
-def write_tf_records(feature_data, label_data, output_path='train/data.tfrecord'):
+def create_label_example(label):
+    """Creates a tensorflow Example out of label data. Which
+    is basically converting the label to a tensorflow record.
+
+    Args:
+        label (int):
+
+    Returns:
+        tf.train.Example
+    """
+    feature = {'label': _int64_feature(label)}
+    features = tf.train.Features(feature=feature)
+    return tf.train.Example(features=features)
+
+
+def write_tf_records(feature_data, label_data, output_dir='train/'):
+    """Creates two files; a features and a labels tensorflow
+    record file.
+
+    Args:
+        feature_data (np.array): 3D numpy array
+        label_data (np.array): 1D numpy array
+        output_dir (str):
+
+    Returns:
+        None
+    """
     assert len(feature_data) == len(label_data), "feature_data must have same length as label_data"
-    with tf.python_io.TFRecordWriter(output_path) as writer:
+    # First writing feature data
+    features_filepath = os.path.join(output_dir, 'features.tfrecord')
+    with tf.python_io.TFRecordWriter(features_filepath) as writer:
         for i in range(len(feature_data)):
-            example = create_example(feature_data[i], label_data[i])
+            example = create_features_example(feature_data[i])
+            writer.write(example.SerializeToString())
+    # Second writing label data
+    labels_filepath = os.path.join(output_dir, 'labels.tfrecord')
+    with tf.python_io.TFRecordWriter(labels_filepath) as writer:
+        for i in range(len(feature_data)):
+            example = create_label_example(label_data[i])
             writer.write(example.SerializeToString())
 
 
 def read_example_for_verification():
+    """Method for checking the data files. It visualizes
+    a little bit of the data.
+    """
     # Read and print data:
     sess = tf.InteractiveSession()
 
@@ -90,12 +135,12 @@ def main():
     logging.info("Storing training data.")
     if not os.path.exists('train'):
         os.mkdir('train')
-    write_tf_records(Xtrain, ytrain, 'train/data.tfrecord')
+    write_tf_records(Xtrain, ytrain, 'train/')
 
     logging.info("Storing testing data.")
     if not os.path.exists('test'):
         os.mkdir('test')
-    write_tf_records(Xtest, ytest, 'test/data.tfrecord')
+    write_tf_records(Xtest, ytest, 'test/')
 
     logging.info("Verifying stored data.")
     read_example_for_verification()

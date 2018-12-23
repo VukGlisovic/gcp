@@ -1,11 +1,22 @@
 import tensorflow as tf
-import logging
 
 
-def input_fn(train_features_file, label_features_file, epochs=1, batch_size=32, buffer_size=50):
-    feature_dataset = tf.data.TextLineDataset(train_features_file)
-    label_dataset = tf.data.TextLineDataset(label_features_file)
-    dataset = tf.data.Dataset.zip((feature_dataset, label_dataset))
+def decode_image(image):
+    decoded_image = tf.decode_raw(image, tf.uint8)
+    decoded_image = tf.reshape(decoded_image, shape=(28, 28), name='reshape_to_28x28')
+    decoded_image = tf.cast(decoded_image, tf.float32)
+    decoded_image = decoded_image / 255.0
+    return decoded_image
+
+
+def input_fn(features_file, labels_file, epochs=1, batch_size=32, buffer_size=50):
+    features_dataset = tf.data.TFRecordDataset(features_file)
+    features_dataset.map(decode_image)
+
+    labels_dataset = tf.data.TFRecordDataset(labels_file)
+
+    dataset = tf.data.Dataset.zip((features_dataset, labels_dataset))
+
     dataset.shuffle(buffer_size)
     dataset.batch(batch_size)
     dataset.repeat(epochs)
