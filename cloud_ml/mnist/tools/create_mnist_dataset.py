@@ -1,4 +1,3 @@
-from __future__ import print_function
 import os
 import logging
 import tensorflow as tf
@@ -95,7 +94,7 @@ def visualize_examples():
     test_labels_path = '../data/test/labels.tfrecord'
     dataset = model.input_fn(test_features_path, test_labels_path, batch_size=1, buffer_size=1)
     dataset = dataset.make_one_shot_iterator()
-    for i in xrange(3):
+    for i in range(3):
         image, label = sess.run(dataset.get_next())
         print("Visualizing number.")
         # Visualize the number (since it's a batch, image is a 3D array)
