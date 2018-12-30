@@ -93,9 +93,8 @@ def visualize_examples():
     test_features_path = '../data/test/features.tfrecord'
     test_labels_path = '../data/test/labels.tfrecord'
     dataset = model.input_fn(test_features_path, test_labels_path, batch_size=1, buffer_size=1)
-    dataset = dataset.make_one_shot_iterator()
     for i in range(3):
-        image, label = sess.run(dataset.get_next())
+        image, label = sess.run(dataset)
         print("Visualizing number.")
         # Visualize the number (since it's a batch, image is a 3D array)
         for row in image[0]:

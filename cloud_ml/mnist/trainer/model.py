@@ -65,7 +65,7 @@ def input_fn(features_file, labels_file, epochs=1, batch_size=32, buffer_size=50
     dataset = dataset.shuffle(buffer_size)
     dataset = dataset.batch(batch_size)
     dataset = dataset.repeat(epochs)
-    return dataset
+    return dataset.make_one_shot_iterator().get_next()
 
 
 def model_fn(features, labels, mode, params=None):
@@ -82,8 +82,7 @@ def model_fn(features, labels, mode, params=None):
     Returns:
         tf.estimator.EstimatorSpec
     """
-    feature_inputs = tf.feature_column.input_layer(features)
-    conv1 = tf.layers.Conv2D(filters=16, kernel_size=(5, 5), strides=(1, 1), name='conv1')(feature_inputs)
+    conv1 = tf.layers.Conv2D(filters=16, kernel_size=(5, 5), strides=(1, 1), name='conv1')(features)
     max_pool1 = tf.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2), name='maxpool1')(conv1)
     conv2 = tf.layers.Conv2D(filters=16, kernel_size=(5, 5), strides=(1, 1), name='conv2')(max_pool1)
     max_pool2 = tf.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2), name='maxpool2')(conv2)
