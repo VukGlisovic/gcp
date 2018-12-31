@@ -98,7 +98,7 @@ def visualize_examples():
         print("Visualizing number.")
         # Visualize the number (since it's a batch, image is a 3D array)
         for row in image[0]:
-            print(" ".join(list(map(lambda v: 'X' if v else '_', row))))
+            print(" ".join(list(map(lambda v: 'X' if v else '_', [r[0] for r in row]))))
         print(label[0])
         print('')
 

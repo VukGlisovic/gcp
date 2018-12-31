@@ -22,7 +22,7 @@ def decode_image(image):
     """
     parsed_features = tf.parse_single_example(serialized=image, features=READ_FEATURES)['image']
     decoded_image = tf.decode_raw(parsed_features, tf.uint8)
-    decoded_image = tf.reshape(decoded_image, shape=(28, 28), name='reshape_to_28x28')
+    decoded_image = tf.reshape(decoded_image, shape=(28, 28, 1), name='reshape_to_28x28x1')
     decoded_image = tf.cast(decoded_image, tf.float32)
     decoded_image = decoded_image / 255.0
     return decoded_image
@@ -82,10 +82,10 @@ def model_fn(features, labels, mode, params=None):
     Returns:
         tf.estimator.EstimatorSpec
     """
-    conv1 = tf.layers.Conv2D(filters=16, kernel_size=(5, 5), strides=(1, 1), name='conv1')(features)
+    conv1 = tf.layers.Conv2D(filters=16, kernel_size=(5, 5), strides=(1, 1), data_format='channels_last', name='conv1')(features)
     max_pool1 = tf.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2), name='maxpool1')(conv1)
     conv2 = tf.layers.Conv2D(filters=16, kernel_size=(5, 5), strides=(1, 1), name='conv2')(max_pool1)
-    max_pool2 = tf.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2), name='maxpool2')(conv2)
+    max_pool2 = tf.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2), data_format='channels_last', name='maxpool2')(conv2)
     flattened = tf.layers.Flatten(name='flatten')(max_pool2)
     dense1 = tf.layers.Dense(units=256, activation='relu', name='dense1')(flattened)
     dropout1 = tf.layers.Dropout(rate=0.5)(dense1)
