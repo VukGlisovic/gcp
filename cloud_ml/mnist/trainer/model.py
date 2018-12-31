@@ -62,7 +62,9 @@ def input_fn(features_file, labels_file, epochs=1, batch_size=32, buffer_size=50
     labels_dataset = labels_dataset.map(decode_label)
     # zip the features and the labels dataset into one dataset
     dataset = tf.data.Dataset.zip((features_dataset, labels_dataset))
-    dataset = dataset.shuffle(buffer_size)
+    if buffer_size:
+        # if the buffer size is zero, then no need to shuffle
+        dataset = dataset.shuffle(buffer_size)
     dataset = dataset.batch(batch_size)
     dataset = dataset.repeat(epochs)
     return dataset.make_one_shot_iterator().get_next()

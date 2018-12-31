@@ -1,3 +1,4 @@
+import os
 import logging
 import argparse
 import model as m
@@ -18,7 +19,7 @@ parser.add_argument('--labels_file',
 parser.add_argument('--model_dir',
                     help='Output directory for storing checkpoints and model.',
                     type=str,
-                    default='~/gcp/cloud_ml/mnist/outputs/')
+                    default=os.path.join(os.environ['HOME'], 'gcp/cloud_ml/mnist/outputs/'))
 parser.add_argument('--learning_rate',
                     help='Learning rate for the optimizer.',
                     type=float,
@@ -44,6 +45,8 @@ def run():
                                         params=params)
     logging.info("Starting training of mnist model.")
     classifier.train(input_fn=lambda: m.input_fn(features_file, labels_file, epochs=1, batch_size=32, buffer_size=50))
+    logging.info("Evaluate accuracy of the model.")
+    classifier.evaluate(input_fn=lambda: m.input_fn('../data/test/features.tfrecord', '../data/test/labels.tfrecord', epochs=1, batch_size=50, buffer_size=0))
 
 
 if __name__ == '__main__':
