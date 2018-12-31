@@ -38,6 +38,9 @@ logging.info("Learning rate: %s", learning_rate)
 
 
 def run():
+    """Execute training and evaluation of the model for classifying
+    mnist data.
+    """
     params = dict(learning_rate=learning_rate)
     logging.info("Creating mnist classification model.")
     classifier = tf.estimator.Estimator(model_fn=m.model_fn,
