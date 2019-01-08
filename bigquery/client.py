@@ -36,18 +36,21 @@ class Bigquery(object):
         except Conflict:
             logging.info("Dataset %s already exists", self.dataset_id)
 
-    def delete_dataset(self, delete_contents=True):
-        """Deletes a bigquery Dataset. The dataset will be deleted from the
-        project that the client has been created in.
-
-        Args:
-            delete_contents (bool): whether to delete tables from the Dataset
+    def delete_dataset(self):
+        """Deletes the bigquery Dataset defined in the class. The
+        dataset will be deleted from the project that the client
+        has been created in.
+        First it will delete all individual tables in the dataset,
+        then it will remove the actual dataset.
 
         Returns:
             None
         """
+        for table_name in self.list_tables():
+            self.delete_table(table_name)
+            logging.info("Deleted table id: %s", table_name)
         dataset_ref = self.client.dataset(self.dataset_id)
-        self.client.delete_dataset(dataset_ref, delete_contents)
+        self.client.delete_dataset(dataset_ref)
         logging.info("Deleted dataset %s", self.dataset_id)
 
     def create_table(self, table_name, schema):
@@ -67,6 +70,30 @@ class Bigquery(object):
             table = self.client.create_table(table)  # API request
         except Conflict:
             logging.info("Table with name %s already exists for dataset %s", table.table_id, self.dataset_id)
+
+    def delete_table(self, table_name):
+        """Deletes a table.
+
+        Args:
+            table_name (str):
+
+        Returns:
+            None
+        """
+        dataset_reference = self.client.dataset(self.dataset_id)
+        table_reference = bigquery.table.TableReference(dataset_reference, table_name)
+        self.client.delete_table(table_reference)
+
+    def list_tables(self):
+        """Yields all the tables in the dataset.
+
+        Yields:
+            str
+        """
+        dataset_reference = self.client.dataset(self.dataset_id)
+        table_iterator = self.client.list_tables(dataset_reference)
+        for table in table_iterator:
+            yield table.table_id
 
     def streaming_insert(self, data, table_id):
         """Does a streaming insert into a bigquery table. This means it can
@@ -123,7 +150,7 @@ class Bigquery(object):
         job_config = bigquery.QueryJobConfig()
         job_config.dry_run = True
         job_config.use_query_cache = False
-        query_job = self.client.query(query, job_config=job_config, location=self.location)
+        query_job = self.client.query(query, job_config=job_config)
         # A dry run query completes immediately.
         assert query_job.state == 'DONE'
         assert query_job.dry_run
