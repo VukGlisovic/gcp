@@ -96,7 +96,7 @@ class Publisher(object):
         topic_path = self.create_topic_path(topic_name)
         self.subscriber_client.create_subscription(name=subscription_path, topic=topic_path, ack_deadline_seconds=ack_deadline_seconds)
 
-    def publish_message(self, topic_name, data, **kwargs):
+    def publish_message(self, topic_name, data, callback_fnc=None, **kwargs):
         """Python 3 expects data to be a bytestring. Therefore, you must
         convert any data you input here first to bytes. An example of how
         you can do this for a dictionary is:
@@ -104,7 +104,9 @@ class Publisher(object):
 
         Args:
             topic_name (str):
-            data (bytes): the information you want to pass in the message
+            data (bytes): the information you want to pass in the message.
+            callback_fnc (function): if provided, it will be used as a callback
+                for when the message is published.
             **kwargs: additional keyword arguments will be passed on in
                 the message. These can be normal python strings.
 
@@ -113,9 +115,13 @@ class Publisher(object):
         """
         topic_path = self.create_topic_path(topic_name)
         future = self.publisher_client.publish(topic_path, data=data, **kwargs)
+        if callback_fnc:
+            future.add_done_callback(callback_fnc)
 
     def pull_message(self, subscription_name, max_messages=1, return_immediately=True):
-        """
+        """Pull messages from a subscription. It returns a list of ReceivedMessage
+        objects. Note that you still have to acknowledge the messages if you don't
+        want the message to be republished.
 
         Args:
             subscription_name (str):
@@ -123,8 +129,37 @@ class Publisher(object):
             return_immediately (bool):
 
         Returns:
-
+            list[google.cloud.pubsub_v1.types.ReceivedMessage]
         """
         subscription_path = self.create_subscription_path(subscription_name)
-        messages_list = self.subscriber_client.pull(subscription_path, max_messages=max_messages, return_immediately=return_immediately)
+        # return a google.cloud.pubsub_v1.types.PullResponse object
+        pull_response = self.subscriber_client.pull(subscription_path, max_messages=max_messages, return_immediately=return_immediately)
+        messages_list = pull_response.received_messages
         return messages_list
+
+    def subscribe(self, subscription_name, callback_fnc):
+        """This is a streaming pull method. It triggers a background thread that
+        asynchronously receives messages on a given subscription. Note that the
+        callback_fnc receives google.cloud.pubsub_v1.subscriber.message.Message
+        messages. You have to acknowledge the messages in the callback_fnc. You
+        can do this with the message.ack(). The message object also contains the
+        data attribute and the attributes (keyword arguments passed on in the publish
+        method). The attributes can be turned into a python dictionary by executing
+        dict(message.attributes.items()).
+
+        Note (I believe this is happening): the background thread is started within
+        the current python process. The way I see you can stop this background thread
+        is by calling streaming_pull_future.cancel() or by stopping the main python
+        process.
+
+        Args:
+            subscription_name:
+            callback_fnc:
+
+        Returns:
+            google.cloud.pubsub_v1.subscriber.futures.StreamingPullFuture
+        """
+        subscription_path = self.create_subscription_path(subscription_name)
+        # This will keep pulling from the subscription
+        streaming_pull_future = self.subscriber_client.subscribe(subscription_path, callback=callback_fnc)
+        return streaming_pull_future
