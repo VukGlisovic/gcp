@@ -3,7 +3,7 @@ from google.api_core.exceptions import AlreadyExists, NotFound
 import logging
 
 
-class Publisher(object):
+class PubSub(object):
 
     def __init__(self, project_id):
         self.project_id = project_id
@@ -60,7 +60,7 @@ class Publisher(object):
             None
         """
         topic_path = self.create_topic_path(topic_name)
-        self.publisher_client.delete_subscription(topic_path)
+        self.publisher_client.delete_topic(topic_path)
 
     def check_topic_existence(self, topic_name):
         """Validate whether the topic exists or not. Returns True if
@@ -95,6 +95,19 @@ class Publisher(object):
         subscription_path = self.create_subscription_path(subscription_name)
         topic_path = self.create_topic_path(topic_name)
         self.subscriber_client.create_subscription(name=subscription_path, topic=topic_path, ack_deadline_seconds=ack_deadline_seconds)
+
+    def delete_subscription(self, subscription_name):
+        """Tries to delete subscription_name. If the subscription_name
+        doesn't exist, it will throw a NotFound 404 exception.
+
+        Args:
+            subscription_name (str):
+
+        Returns:
+            None
+        """
+        subscription_path = self.create_subscription_path(subscription_name)
+        self.subscriber_client.delete_subscription(subscription_path)
 
     def publish_message(self, topic_name, data, callback_fnc=None, **kwargs):
         """Python 3 expects data to be a bytestring. Therefore, you must
@@ -137,7 +150,16 @@ class Publisher(object):
         messages_list = pull_response.received_messages
         return messages_list
 
-    def subscribe(self, subscription_name, callback_fnc):
+    def subscribe(self,
+                  subscription_name,
+                  callback_fnc,
+                  max_bytes=104857600,
+                  max_messages=100,
+                  resume_threshold=0.8,
+                  max_requests=100,
+                  max_request_batch_size=100,
+                  max_request_batch_latency=0.01,
+                  max_lease_duration=7200):
         """This is a streaming pull method. It triggers a background thread that
         asynchronously receives messages on a given subscription. Note that the
         callback_fnc receives google.cloud.pubsub_v1.subscriber.message.Message
@@ -152,14 +174,31 @@ class Publisher(object):
         is by calling streaming_pull_future.cancel() or by stopping the main python
         process.
 
+        Remark: flow_control is under testing; not sure how it exactly workes yet.
+
         Args:
-            subscription_name:
-            callback_fnc:
+            subscription_name (str):
+            callback_fnc (function):
+            max_bytes (int):
+            max_messages (int): max allowed outstanding messages for a worker
+            resume_threshold (float): between 0 and 1; indicates a percentage
+            max_requests (int):
+            max_request_batch_size (int):
+            max_request_batch_latency (float): in seconds
+            max_lease_duration (int): in seconds
 
         Returns:
             google.cloud.pubsub_v1.subscriber.futures.StreamingPullFuture
         """
         subscription_path = self.create_subscription_path(subscription_name)
+        # Flow control; this can help not overhoarding the system
+        flow_control = pubsub.types.FlowControl(max_bytes,
+                                                max_messages,
+                                                resume_threshold,
+                                                max_requests,
+                                                max_request_batch_size,
+                                                max_request_batch_latency,
+                                                max_lease_duration)
         # This will keep pulling from the subscription
-        streaming_pull_future = self.subscriber_client.subscribe(subscription_path, callback=callback_fnc)
+        streaming_pull_future = self.subscriber_client.subscribe(subscription_path, callback=callback_fnc, flow_control=flow_control)
         return streaming_pull_future
