@@ -1,7 +1,7 @@
 from google.cloud import bigtable
 from google.cloud.bigtable import column_family as bt_column_family
 from google.cloud.bigtable import enums as bt_enums
-from google.api_core.exceptions import AlreadyExists, Conflict
+from google.api_core.exceptions import AlreadyExists, Conflict, NotFound
 import datetime as dt
 import logging
 
@@ -133,6 +133,7 @@ class Bigtable(object):
             None
         """
         cluster = self.create_cluster_config(cluster_name, location_id, nr_nodes, use_ssd_storage)
+        logging.info("Creating cluster '%s'.", cluster_name)
         cluster.create()
 
     def create_table(self, table_name, app_profile_name=None, initial_split_rowkeys=[], column_families={}):
@@ -148,11 +149,11 @@ class Bigtable(object):
             None
         """
         table = self.instance.table(table_name, app_profile_name)
+        logging.info("Creating table '%s'.", table_name)
         table.create(initial_split_keys=initial_split_rowkeys, column_families=column_families)
 
-    @classmethod
-    def create_column_family(cls, column_family_name, table_name, max_age=None, nr_max_versions=None, gc_rule_union=None):
-        """Create a column family that can be added to a table. Garbage collection rules
+    def create_column_family(self, column_family_name, table_name, max_age=None, nr_max_versions=None, gc_rule_union=None):
+        """Create a column family and add it to a table. Garbage collection rules
         can be included to the column family.
 
         Args:
@@ -161,7 +162,9 @@ class Bigtable(object):
             max_age (int): the time to live in days
             nr_max_versions (int): the number of versions that should be kept
             gc_rule_union (bool or None): if both max_age and nr_max_versions are specified,
-                then this parameter should be a bool.
+                then this parameter should be a bool. If True, then the max age and the max
+                versions rules are unified, if False, then the intersection of the rules is
+                used.
 
         Returns:
             google.cloud.bigtable.column_family.ColumnFamily
@@ -188,5 +191,9 @@ class Bigtable(object):
             # no rule is specified
             gc_rule = None
 
-        column_family = bt_column_family.ColumnFamily(column_family_name, table_name, gc_rule)
+        table = self.instance.table(table_name)
+        if not table.exists():
+            raise NotFound("Table name '{}' does not exist.".format(table_name))
+        logging.info("Creating column family '%s' in table '%s'.", column_family_name, table_name)
+        column_family = bt_column_family.ColumnFamily(column_family_name, table, gc_rule)
         column_family.create()
