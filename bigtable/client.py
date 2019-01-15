@@ -1,6 +1,8 @@
 from google.cloud import bigtable
+from google.cloud.bigtable import column_family as bt_column_family
 from google.cloud.bigtable import enums as bt_enums
-from google.api_core.exceptions import AlreadyExists
+from google.api_core.exceptions import AlreadyExists, Conflict
+import datetime as dt
 import logging
 
 
@@ -132,3 +134,59 @@ class Bigtable(object):
         """
         cluster = self.create_cluster_config(cluster_name, location_id, nr_nodes, use_ssd_storage)
         cluster.create()
+
+    def create_table(self, table_name, app_profile_name=None, initial_split_rowkeys=[], column_families={}):
+        """Create a table within the instance.
+
+        Args:
+            table_name (str):
+            app_profile_name (str):
+            initial_split_rowkeys (list):
+            column_families (dict):
+
+        Returns:
+            None
+        """
+        table = self.instance.table(table_name, app_profile_name)
+        table.create(initial_split_keys=initial_split_rowkeys, column_families=column_families)
+
+    @classmethod
+    def create_column_family(cls, column_family_name, table_name, max_age=None, nr_max_versions=None, gc_rule_union=None):
+        """Create a column family that can be added to a table. Garbage collection rules
+        can be included to the column family.
+
+        Args:
+            column_family_name (str):
+            table_name (str):
+            max_age (int): the time to live in days
+            nr_max_versions (int): the number of versions that should be kept
+            gc_rule_union (bool or None): if both max_age and nr_max_versions are specified,
+                then this parameter should be a bool.
+
+        Returns:
+            google.cloud.bigtable.column_family.ColumnFamily
+        """
+        if max_age and nr_max_versions:
+            # Both rules are specified, this also means a merge method must be specified (union or intersection)
+            time_to_live = dt.timedelta(days=max_age)
+            max_age_rule = bt_column_family.MaxAgeGCRule(time_to_live)
+            max_versions_rule = bt_column_family.MaxVersionsGCRule(nr_max_versions)
+            if gc_rule_union is None:
+                raise Conflict("If max_age and nr_max_versions are both specified, then gc_rule_union cannot be None.")
+            elif gc_rule_union:
+                gc_rule = bt_column_family.GCRuleUnion(rules=[max_age_rule, max_versions_rule])
+            else:
+                gc_rule = bt_column_family.GCRuleIntersection(rules=[max_age_rule, max_versions_rule])
+        elif max_age:
+            # only max age is specified
+            time_to_live = dt.timedelta(days=max_age)
+            gc_rule = bt_column_family.MaxAgeGCRule(time_to_live)
+        elif nr_max_versions:
+            # only max number of versions is specified
+            gc_rule = bt_column_family.MaxVersionsGCRule(nr_max_versions)
+        else:
+            # no rule is specified
+            gc_rule = None
+
+        column_family = bt_column_family.ColumnFamily(column_family_name, table_name, gc_rule)
+        column_family.create()
