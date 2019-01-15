@@ -13,7 +13,8 @@ class Bigtable(object):
         self.instance = self.client.instance(instance_id)
 
     def create_instance(self, create_in_production, cluster_name, location_id, nr_nodes, use_ssd_storage, timeout=100):
-        """To create an instance, you also have to configure cluster parameters.
+        """To create an instance, you also have to configure cluster parameters. If the cluster
+        already exists, an AlreadyExists exception is raised.
 
         Example configuration:
         - create_in_production=False
@@ -43,13 +44,8 @@ class Bigtable(object):
         production, nr_nodes = (bt_enums.Instance.Type.PRODUCTION, nr_nodes) if create_in_production else (bt_enums.Instance.Type.DEVELOPMENT, None)
         self.instance = self.client.instance(instance_id=self.instance_id, display_name=self.instance_id, instance_type=production)
         # cluster configurations
-        storage_type = bt_enums.StorageType.SSD if use_ssd_storage else bt_enums.StorageType.HDD
-        cluster = self.instance.cluster(
-            cluster_name,
-            location_id=location_id,
-            serve_nodes=nr_nodes,
-            default_storage_type=storage_type,
-        )
+        cluster = self.create_cluster_config(cluster_name, location_id, nr_nodes, use_ssd_storage)
+        # Create the instance with a cluster
         operation = self.instance.create(clusters=[cluster])
         # We want to make sure the operation completes.
         operation.result(timeout=timeout)
@@ -99,3 +95,40 @@ class Bigtable(object):
         self.instance.delete()
         # Reset the instance attribute
         self.instance = self.client.instance(self.instance_id)
+
+    def create_cluster_config(self, cluster_name, location_id, nr_nodes, use_ssd_storage):
+        """Create a cluster object with which you can create a cluster. If you'd like a
+        development cluster, then set nr_nodes=None.
+
+        Args:
+            cluster_name (str):
+            location_id (str):
+            nr_nodes (int or None): if None, then development instance should be created.
+            use_ssd_storage (bool): whether to use SSD or HDD storage
+
+        Returns:
+            google.cloud.bigtable.cluster.Cluster
+        """
+        storage_type = bt_enums.StorageType.SSD if use_ssd_storage else bt_enums.StorageType.HDD
+        cluster = self.instance.cluster(
+            cluster_name,
+            location_id=location_id,
+            serve_nodes=nr_nodes,
+            default_storage_type=storage_type,
+        )
+        return cluster
+
+    def create_cluster(self, cluster_name, location_id, nr_nodes, use_ssd_storage):
+        """Creates a cluster for an existing Instance.
+
+        Args:
+            cluster_name (str):
+            location_id (str):
+            nr_nodes (int or None): if None, then development instance should be created.
+            use_ssd_storage (bool): whether to use SSD or HDD storage
+
+        Returns:
+            None
+        """
+        cluster = self.create_cluster_config(cluster_name, location_id, nr_nodes, use_ssd_storage)
+        cluster.create()
