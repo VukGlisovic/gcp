@@ -1,3 +1,8 @@
+"""
+Note that apache-beam doesn't have full support for python 3 yet.
+Therefore it could be a good idea to use python 2.7 for google
+dataflow, since you can then use the latest apache-beam version.
+"""
 from googleapiclient import discovery
 import logging
 
