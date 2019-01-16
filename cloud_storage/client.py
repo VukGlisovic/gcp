@@ -32,7 +32,7 @@ class CloudStorage(object):
         """
         bucket = self.client.bucket(bucket_name)
         bucket.delete(force=True)
-        logging.info("Deleted bucket %s", bucket_name)
+        logging.info("Deleted bucket '%s'.", bucket_name)
 
     def upload_blob_from_filename(self, source_filename, destination_gcs_path):
         """Uploads a file to cloud storage.
@@ -65,6 +65,21 @@ class CloudStorage(object):
         blob = bucket.blob(filepath)
         blob.upload_from_string(data)
         logging.info("Uploaded content to filepath %s in bucket %s.", filepath, bucket_name)
+
+    def delete_blob(self, gcs_path):
+        """Deletes a blob from cloud storage.
+
+        Args:
+            gcs_path (str):  a full cloud storage path (starting with gs://).
+
+        Returns:
+            None
+        """
+        bucket_name, filepath = self.parse_gcs_path(gcs_path)
+        bucket = self.client.bucket(bucket_name)
+        blob = bucket.blob(filepath)
+        blob.delete()
+        logging.info("Deleted file '%s' from bucket '%s'.", filepath, bucket_name)
 
     def get_blob_content(self, gcs_path):
         """Downloads content from the specified cloud storage path.
