@@ -199,18 +199,20 @@ class Bigtable(object):
         column_family = bt_column_family.ColumnFamily(column_family_name, table, gc_rule)
         column_family.create()
 
-    def write_rows(self, rowkeys, data, column_family_name, column_name, table_name):
-        """
+    def write_rows(self, row_keys, data, column_family_name, column_name, table_name):
+        """Writes data with its row_keys to column_name in table table_name. Note that
+        the rowkeys and the values are converted to strings and encoded in utf-8.
+        Also, it is only able to write data for one column.
 
         Args:
-            rowkeys (list):
+            row_keys (list):
             data (list):
             column_family_name (str):
             column_name (str):
             table_name (str):
 
         Returns:
-
+            response
         """
         table = self.instance.table(table_name)
         timestamp = dt.datetime.utcnow()  # timestamp of insertion; give all data in this request the same timestamp
@@ -220,13 +222,28 @@ class Bigtable(object):
             row.set_cell(column_family_name, column_name, str(value).encode('utf-8'), timestamp=timestamp)
             return row
 
-        rows = list(map(create_row, rowkeys, data))
+        rows = list(map(create_row, row_keys, data))
         response = table.mutate_rows(rows)
         return response
 
+    def delete_rows(self, table_name, row_key_prefix, timeout=200.0):
+        """Deletes rows with row keys that start with row_key_prefix.
+
+        Args:
+            table_name (str):
+            row_key_prefix (str): this will be encoded in utf-8.
+            timeout (Optional[float]): timeout in seconds.
+
+        Returns:
+
+        """
+        logging.info("Deleting rows with prefix: '%s' from table '%s'", row_key_prefix, table_name)
+        table = self.instance.table(table_name)
+        table.drop_by_prefix(row_prefix=row_key_prefix.encode('utf-8'), timeout=timeout)
+
     def read_rows(self, table_name, column_family_name, column_name, start_key=None, end_key=None, end_inclusive=True):
         """Reads cells of one column from bigtable. Note that it returns the latest
-        version of the cell.
+        version of the cell. It is only able to read data from one column.
 
         Args:
             table_name (str):
