@@ -1,6 +1,7 @@
 from google.cloud import bigtable
 from google.cloud.bigtable import column_family as bt_column_family
 from google.cloud.bigtable import enums as bt_enums
+from google.cloud.bigtable.row_filters import ColumnQualifierRegexFilter
 from google.api_core.exceptions import AlreadyExists, Conflict, NotFound
 import datetime as dt
 import logging
@@ -197,3 +198,52 @@ class Bigtable(object):
         logging.info("Creating column family '%s' in table '%s'.", column_family_name, table_name)
         column_family = bt_column_family.ColumnFamily(column_family_name, table, gc_rule)
         column_family.create()
+
+    def write_rows(self, rowkeys, data, column_family_name, column_name, table_name):
+        """
+
+        Args:
+            rowkeys (list):
+            data (list):
+            column_family_name (str):
+            column_name (str):
+            table_name (str):
+
+        Returns:
+
+        """
+        table = self.instance.table(table_name)
+        timestamp = dt.datetime.utcnow()  # timestamp of insertion; give all data in this request the same timestamp
+
+        def create_row(rowkey, value):
+            row = table.row(str(rowkey).encode('utf-8'))
+            row.set_cell(column_family_name, column_name, str(value).encode('utf-8'), timestamp=timestamp)
+            return row
+
+        rows = list(map(create_row, rowkeys, data))
+        response = table.mutate_rows(rows)
+        return response
+
+    def read_rows(self, table_name, column_family_name, column_name, start_key=None, end_key=None, end_inclusive=True):
+        """Reads cells of one column from bigtable. Note that it returns the latest
+        version of the cell.
+
+        Args:
+            table_name (str):
+            column_family_name (str):
+            column_name (bytes):
+            start_key (str):
+            end_key (str):
+            end_inclusive (bool):
+
+        Returns:
+            list[tuple[str, str]]
+        """
+        table = self.instance.table(table_name)
+        filter_ = ColumnQualifierRegexFilter(regex=column_name)
+        partial_rows = table.read_rows(start_key, end_key, filter_=filter_, end_inclusive=end_inclusive)
+
+        def unpack_row(row):
+            return row.row_key.decode('utf-8'), row.cell_value(column_family_name, column_name).decode('utf-8')
+
+        return [unpack_row(row) for row in partial_rows]
