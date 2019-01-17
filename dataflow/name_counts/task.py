@@ -33,7 +33,7 @@ from apache_beam import pvalue
 from apache_beam.options.pipeline_options import PipelineOptions, GoogleCloudOptions
 from apache_beam.transforms.core import Create
 
-from transform_functions import SplitAndFilterNames
+from transform_functions import SplitAndFilterNames, GetFirstName, GetLastName
 
 
 def run():
@@ -41,16 +41,18 @@ def run():
     parser.add_argument('--input_path',
                         default='gs://name_counts_example/name_files/inputs/name_file_*',
                         help='String or regular expression pointing towards one or more files.')
-    parser.add_argument('--output_path',
-                        default='gs://name_counts_example/output.txt',
-                        help='Blob where the outputs will be written to.')
+    parser.add_argument('--output_path_template',
+                        default='gs://name_counts_example/output_{}.txt',
+                        help='Blob where the outputs will be written to. It should contain two curly brackets that will be replaced.')
 
     known_args, pipeline_args = parser.parse_known_args()
     # parameters used in the pipeline
     gcs_input_path = known_args.input_path
-    gcs_output_path = known_args.output_path
+    gcs_output_path_first_names = known_args.output_path_template.format('first_names')
+    gcs_output_path_last_names = known_args.output_path_template.format('last_names')
     logging.info("Using input path: %s", gcs_input_path)
-    logging.info("Using output path: %s (for writing counts)", gcs_output_path)
+    logging.info("Using output path for first names: %s", gcs_output_path_first_names)
+    logging.info("Using output path for last names: %s", gcs_output_path_last_names)
     # google cloud parameters
     pipeline_options = PipelineOptions(pipeline_args)
     google_cloud_options = pipeline_options.view_as(GoogleCloudOptions)
@@ -74,24 +76,21 @@ def run():
                       | 'Letters Side Input' >> Create(['A', 'B', 'C', 'X', 'Y', 'Z'])
                       )
 
-    # Read files from cloud storage part of the pipeline
-    read_jsons = (pipeline_startup
-                  | 'Filter Names' >> beam.ParDo(SplitAndFilterNames(), filter_letters=pvalue.AsList(filter_letters))
+    names_filtered = (pipeline_startup
+                      | 'Filter Names' >> beam.ParDo(SplitAndFilterNames(), filter_letters=pvalue.AsList(filter_letters))
+                      )
+
+    first_names = (names_filtered
+                   | 'Get First Names' >> beam.ParDo(GetFirstName())
+                   | 'Group By First Name' >> beam.CombinePerKey(max)
+                   | 'Store First Name Result' >> beam.io.WriteToText(gcs_output_path_first_names, num_shards=1)
+                   )
+
+    last_names = (names_filtered
+                  | 'Get Last Names' >> beam.ParDo(GetLastName())
+                  | 'Group By Last Name' >> beam.CombinePerKey(min)
+                  | 'Store Last Name Result' >> beam.io.WriteToText(gcs_output_path_first_names, num_shards=1)
                   )
-    #
-    # # Transform and ingest part of the pipeline
-    # ingest_content = (read_jsons
-    #                   | 'Transform Content' >> beam.ParDo(TransformContent(), dict=info_side_input)
-    #                   | 'Insert In Bigtable' >> beam.ParDo(InsertInBigtable())
-    #                   )
-    #
-    # # Calculate number of files read per  (sanity check) part of the pipeline
-    # counts = (read_jsons | 'Extract ID' >> beam.Map(lambda dct: dct.get(''))
-    #           | 'Add Ones' >> beam.Map(lambda ds_id: (ds_id, 1))
-    #           | 'Group IDs' >> beam.GroupByKey()
-    #           | 'Get Group Size' >> beam.ParDo(CalculateNumberOfFiles())
-    #           | 'Write Counts' >> beam.io.WriteToText(gcs_output_path, num_shards=1)
-    #           )
 
     result = p.run()
     # result.wait_until_finish()
