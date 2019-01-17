@@ -52,15 +52,19 @@ def upload_data():
     """
     cs = CloudStorage(project_id)
     try:
-        cs.create_bucket(bucket_name)
+        location = 'EU'
+        cs.create_bucket(bucket_name, location)
     except Conflict:
         logging.info("Bucket '%s' has already been created.", bucket_name)
     for i in range(file_count):
         data = create_content()
-        gcs_path = 'gs://{}/name_files/name_file_{}.txt'.format(bucket_name, i)
+        gcs_path = 'gs://{}/name_files/inputs/name_file_{}.txt'.format(bucket_name, i)
         logging.info("Uploading file to: %s", gcs_path)
         cs.upload_blob_from_data(data, gcs_path)
 
 
 if __name__ == '__main__':
+    logformat = '%(asctime)s | %(levelname)s | [%(filename)s:%(lineno)s - %(funcName)s] %(message)s'
+    log_level = 'INFO'
+    logging.basicConfig(format=logformat, level=log_level, stream=sys.stdout)
     upload_data()
