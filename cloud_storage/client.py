@@ -9,16 +9,18 @@ class CloudStorage(object):
     def __init__(self, project_id):
         self.client = storage.Client(project_id)
 
-    def create_bucket(self, bucket_name):
+    def create_bucket(self, bucket_name, location=None):
         """Creates a new bucket.
 
         Args:
             bucket_name (str):
+            location (str): for example US, EU, ASIA
 
         Returns:
             None
         """
-        bucket = self.client.create_bucket(bucket_name)
+        bucket = self.client.bucket(bucket_name)
+        bucket.create(location=location.upper())
         logging.info("Created bucket: %s", bucket.name)
 
     def delete_bucket(self, bucket_name):
