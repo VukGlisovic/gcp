@@ -18,7 +18,7 @@ parser.add_argument('--name_count',
 parser.add_argument('--file_count',
                     help='Number of files to create.',
                     type=int,
-                    default=3)
+                    default=5)
 parser.add_argument('--bucket_name',
                     help='Where to store the name files',
                     type=str,
