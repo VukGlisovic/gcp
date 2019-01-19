@@ -29,7 +29,7 @@ parser.add_argument('--project_id',
 parser.add_argument('--input_file_glob',
                     help='Channel classifier to aggregate.',
                     type=str,
-                    default='gs://letter_statistics_calculations/letter_files/inputs/*')
+                    default='gs://letter_statistics_calculations/letter_files/inputs/')
 parser.add_argument('--output_path',
                     help='Where to store the aggregated result',
                     type=str,
