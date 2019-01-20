@@ -5,7 +5,8 @@ simple pyspark script and a simple dataset.
 
 First of all make sure the data is in place, therefore, run the `data_generator.py`
 with the appropriate parameters set. This will create a dataset and upload it
-to a cloud storage bucket.
+to a cloud storage bucket. If you want to have this data locally, simply copy it
+to a local directory with a `gsutil` command.
 
 Next, upload `calculate_letter_statistics.py` (the pyspark script) and 
 `initialize_cluster.sh` (the bash script for initializing a dataproc cluster).

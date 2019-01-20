@@ -6,7 +6,7 @@ import logging
 
 
 LETTERS = 'abcdefghijklmnopqrstuvwxyz'
-LETTERS = LETTERS + LETTERS.upper()
+LETTERS = LETTERS.upper() + LETTERS
 NR_LETTERS = len(LETTERS)
 np.random.seed(1234)
 parser = argparse.ArgumentParser()
