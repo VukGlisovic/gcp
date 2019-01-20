@@ -147,3 +147,27 @@ class DataProc(object):
             except KeyboardInterrupt:
                 logging.info('Stopping polling.')
                 return
+
+
+class DataProcClientController(object):
+    """Class for finding already existing DataProc instances. This makes
+    sure there is no need to recreate an already existing object. This
+    saves time.
+    """
+
+    _dataprocclientcontroller__instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not DataProcClientController._dataprocclientcontroller__instance:
+            logging.info("Creating new DataProcClientController instance.")
+            DataProcClientController._dataprocclientcontroller__instance = object.__new__(cls)
+        return DataProcClientController._dataprocclientcontroller__instance
+
+    def get_client(self, project_id, region, zone_letter):
+        dataproc_client_instance_name = '__dataproc_client_' + project_id + '_' + region + '_' + zone_letter
+        dataproc_client = getattr(self, dataproc_client_instance_name, None)
+        if not dataproc_client:
+            dataproc_client = DataProc(project_id, region, zone_letter)
+            # Make sure DataProcClientController remembers this object
+            setattr(self, dataproc_client_instance_name, dataproc_client)
+        return dataproc_client
