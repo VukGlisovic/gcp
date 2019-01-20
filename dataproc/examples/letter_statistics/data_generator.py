@@ -28,7 +28,7 @@ parser.add_argument('--file_count',
 parser.add_argument('--bucket_name',
                     help='Where to store the name files',
                     type=str,
-                    default='letter_counts_example')
+                    default='letter_statistics_example')
 known_args, _ = parser.parse_known_args()
 project_id = known_args.project_id
 min_count_per_letter = known_args.min_count_per_letter
@@ -62,7 +62,7 @@ def store_data(data):
     chunk_size = int(np.ceil(len(data) / file_count))
     chunks = [data[i*chunk_size: (i+1)*chunk_size] for i in range(file_count)]
     for file_nr, data_chunk in enumerate(chunks):
-        gcs_path = 'gs://{}/letter_files/inputs/letter_file_{}.txt'.format(bucket_name, file_nr)
+        gcs_path = 'gs://{}/data/inputs/letter_file_{}.txt'.format(bucket_name, file_nr)
         content = "\n".join(data_chunk)
         cs.upload_blob_from_data(content, gcs_path)
 

@@ -3,6 +3,9 @@
 This example illustrates how to get started with a simple dataproc cluster, a 
 simple pyspark script and a simple dataset.
 
+You can execute the notebook under `notebooks/dataproc/01-letter-statistics-calculation.ipynb`.
+Or you can follow this readme.
+
 First of all make sure the data is in place, therefore, run the `data_generator.py`
 with the appropriate parameters set. This will create a dataset and upload it
 to a cloud storage bucket. If you want to have this data locally, simply copy it
@@ -15,8 +18,8 @@ Execute the following command for this:
 gsutil cp calculate_letter_statistics.py initialize_cluster.sh gs://[YOUR_BUCKET]/[YOUR_FOLDER]
 ```
 
-Create a dataproc cluster; either by using the dataproc.client or by executing
-the following gcloud command (this will create a cluster named `cluster-test`):
+Create a dataproc cluster: execute the following gcloud command (this will
+create a cluster named `cluster-test`):
 ```bash
 gcloud dataproc clusters create cluster-test \
     --initialization-actions='gs://[YOUR_BUCKET]/[YOUR_FOLDER]/initialize_cluster.sh' \
@@ -34,7 +37,7 @@ gcloud dataproc clusters create cluster-test \
     --project='[YOUR_PROJECT]'
 ```
 
-Then finally submit your job. Script parameter are passed on after the double
+Wait till the cluster has completely started up. Then finally submit your job. Script parameter are passed on after the double
 hyphen:
 ```bash
 gcloud dataproc jobs submit pyspark 'gs://[YOUR_BUCKET]/[YOUR_FOLDER]/calculate_letter_statistics.py' \
@@ -47,3 +50,4 @@ gcloud dataproc jobs submit pyspark 'gs://[YOUR_BUCKET]/[YOUR_FOLDER]/calculate_
     --output_path='gs://[YOUR_BUCKET]/[YOUR_OUTPUT_PATH].csv'
 ```
 
+You will be able to find the results in the `output_path` in cloud storage.

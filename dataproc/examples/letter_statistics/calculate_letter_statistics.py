@@ -89,6 +89,7 @@ def result_to_dataframe(data):
     dataframe = pd.DataFrame(data=list(statistics), index=letters, columns=['SUM', 'SUM_OF_SQUARES', 'MAX', 'MIN', 'COUNT']).sort_index()
     dataframe['MEAN'] = dataframe['SUM'] / dataframe['COUNT']
     dataframe['VARIANCE'] = dataframe['SUM_OF_SQUARES'] / dataframe['COUNT'] - dataframe['MEAN']**2
+    dataframe['STANDARD_DEVIATION'] = dataframe['VARIANCE']**0.5
     logging.info("Total datapoints read: {}.".format(dataframe['COUNT'].sum()))
     return dataframe
 
