@@ -1,0 +1,10 @@
+{% extends "index.html" %}
+{% block body %}
+<div class="block1">
+    <h1>Hello, what is your name?</h1>
+    <form action="/hello/name" method="get">
+        <input type="text" name="name"><br>
+    </form>
+
+</div>
+{% endblock %}

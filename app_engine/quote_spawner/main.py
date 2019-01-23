@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, session, request
 import numpy as np
 
 app = Flask(__name__)
@@ -7,11 +7,12 @@ app = Flask(__name__)
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template('index.html', title='Home')
+    return render_template('index_extender.html', title='Home')
 
 
-@app.route('/hello/<string:name>/')
+@app.route('/hello/<string:name>/', methods=['GET', 'POST'])
 def hello(name):
+    name = request.values['name']
     quotes = ["'If people do not believe that mathematics is simple, it is only because they do not realize how complicated life is.' -- John Louis von Neumann",
               "'Computer science is no more about computers than astronomy is about telescopes' --  Edsger Dijkstra ",
               "'To understand recursion you must first understand recursion..' -- Unknown",
