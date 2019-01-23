@@ -1,5 +1,6 @@
 from cloud_storage.client import CloudStorage
 from google.cloud.exceptions import Conflict
+import sys
 import numpy as np
 import argparse
 import names
@@ -22,7 +23,7 @@ parser.add_argument('--file_count',
 parser.add_argument('--bucket_name',
                     help='Where to store the name files',
                     type=str,
-                    default='name_counts_example')
+                    default='name_counts_example_for_testing')
 known_args, _ = parser.parse_known_args()
 project_id = known_args.project_id
 name_count = known_args.name_count
@@ -58,7 +59,7 @@ def upload_data():
         logging.info("Bucket '%s' has already been created.", bucket_name)
     for i in range(file_count):
         data = create_content()
-        gcs_path = 'gs://{}/name_files/inputs/name_file_{}.txt'.format(bucket_name, i)
+        gcs_path = 'gs://{}/data/inputs/name_file_{}.txt'.format(bucket_name, i)
         logging.info("Uploading file to: %s", gcs_path)
         cs.upload_blob_from_data(data, gcs_path)
 
