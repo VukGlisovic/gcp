@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Website</title>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static', filename='styles/simple_style.css') }}">
+</head>
+
+<style>
+    #bottom-right {
+        position: fixed;
+        bottom: 0%;
+        right: 1%;
+    }
+</style>
+
+<body>
+
+{% block body %}{% endblock %}
+
+<div id="bottom-right">
+    <p>Wisemens Page</p>
+</div>
+
+</body>
+
+</html>
