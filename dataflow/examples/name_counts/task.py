@@ -8,6 +8,7 @@ python setup.py bdist_wheel
 Example parameters for your script to run on google cloud:
 --project=[YOUR-PROJECT]
 --runner=DataflowRunner
+--setup_file=setup.py
 --input_path=gs://name_counts_example/data/inputs/name_file_*
 --output_path=gs://name_counts_example/data/outputs/output_{}.txt
 --temp_location=gs://name_counts_example/dataflow/temp
@@ -34,7 +35,7 @@ from apache_beam import pvalue
 from apache_beam.options.pipeline_options import PipelineOptions, GoogleCloudOptions
 from apache_beam.transforms.core import Create
 
-from transform_functions import SplitAndFilterNames, GetFirstName, GetLastName
+from custom_modules.transform_functions import SplitAndFilterNames, GetFirstName, GetLastName
 
 
 def run():
