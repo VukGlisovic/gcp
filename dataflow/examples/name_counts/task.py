@@ -7,14 +7,17 @@ python setup.py bdist_wheel
 
 Example parameters for your script to run on google cloud:
 --project=[YOUR-PROJECT]
+--region=europe-west1
 --runner=DataflowRunner
 --setup_file=setup.py
 --input_path=gs://name_counts_example/data/inputs/name_file_*
 --output_path=gs://name_counts_example/data/outputs/output_{}.txt
 --temp_location=gs://name_counts_example/dataflow/temp
---staging_location=gs://name_counts_example/dataflow/templates/name_counts
+--staging_location=gs://name_counts_example/dataflow/staging
+--template_location=gs://name_counts_example/dataflow/templates/name_counts
 --requirements_file=requirements.txt
 --extra_package=additional_package-0.1-py2-none-any.whl
+--max-workers=2
 --save_main_session
 
 
@@ -38,23 +41,24 @@ from apache_beam.transforms.core import Create
 from custom_modules.transform_functions import SplitAndFilterNames, GetFirstName, GetLastName
 
 
+class NameCountOptions(PipelineOptions):
+
+    @classmethod
+    def _add_argparse_args(cls, parser):
+        parser.add_argument('--input_path',
+                            help='String or regular expression pointing towards one or more files.',
+                            type=str,
+                            default='gs://name_counts_example/data/inputs/name_file_*')
+        parser.add_argument('--output_path_template',
+                            help='Blob where the outputs will be written to. It should contain two curly brackets that will be replaced.',
+                            type=str,
+                            default='gs://name_counts_example/data/output_{}.txt')
+
+
 def run():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input_path',
-                        default='gs://name_counts_example/data/inputs/name_file_*',
-                        help='String or regular expression pointing towards one or more files.')
-    parser.add_argument('--output_path_template',
-                        default='gs://name_counts_example/data/output_{}.txt',
-                        help='Blob where the outputs will be written to. It should contain two curly brackets that will be replaced.')
+    _, pipeline_args = parser.parse_known_args()
 
-    known_args, pipeline_args = parser.parse_known_args()
-    # parameters used in the pipeline
-    gcs_input_path = known_args.input_path
-    gcs_output_path_first_names = known_args.output_path_template.format('first_names')
-    gcs_output_path_last_names = known_args.output_path_template.format('last_names')
-    logging.info("Using input path: %s", gcs_input_path)
-    logging.info("Using output path for first names: %s", gcs_output_path_first_names)
-    logging.info("Using output path for last names: %s", gcs_output_path_last_names)
     # google cloud parameters
     pipeline_options = PipelineOptions(pipeline_args)
     google_cloud_options = pipeline_options.view_as(GoogleCloudOptions)
@@ -64,6 +68,15 @@ def run():
     if not google_cloud_options.job_name:
         google_cloud_options.job_name = 'name-counts-{}'.format(dt.datetime.utcnow().strftime('%Y%m%d-%H%M%S'))
     logging.info("Dataflow job name: %s", google_cloud_options.job_name)
+
+    # parameters used in the pipeline
+    name_count_options = pipeline_options.view_as(NameCountOptions)
+    gcs_input_path = name_count_options.input_path
+    gcs_output_path_first_names = name_count_options.output_path_template.format('first_names')
+    gcs_output_path_last_names = name_count_options.output_path_template.format('last_names')
+    logging.info("Using input path: %s", gcs_input_path)
+    logging.info("Using output path for first names: %s", gcs_output_path_first_names)
+    logging.info("Using output path for last names: %s", gcs_output_path_last_names)
 
     p = beam.Pipeline(options=pipeline_options)
 

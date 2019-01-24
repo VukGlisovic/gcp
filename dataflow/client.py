@@ -14,8 +14,12 @@ class DataFlow(object):
         self.zone = zone
         self.client = discovery.build('dataflow', 'v1b3')
 
-    def submit_job_from_template(self, template_path, temp_location, job_name, parameters={}):
+    def submit_job_from_template(self, template_path, temp_location, job_name, parameters={}, max_workers=None, machine_type=None):
         """Submits a dataflow batch job with optionally configured parameters.
+
+        NOTE: for some reason, I cannot specify a different location to launch a job. us-central1
+        is the only one that is accepted. However, with a gcloud command, you can specify the
+        region you want.
 
         Args:
             template_path (str): a full cloud storage path (starting with gs://). This path
@@ -23,7 +27,7 @@ class DataFlow(object):
             temp_location (str): a full cloud storage path (starting with gs://). This path
                 will be used for staging any temporary files.
             job_name (str):
-            parameters (dict):
+            parameters (dict): regular key value pairs. No need to prefix with double hyphen.
 
         Returns:
             dict
@@ -37,8 +41,13 @@ class DataFlow(object):
                 "zone": self.zone
             }
         }
+        if max_workers:
+            body['environment']['maxWorkers'] = max_workers
+        if machine_type:
+            body['environment']['machineType'] = machine_type
 
         request = self.client.projects().templates().launch(projectId=self.project_id,
+                                                            # location='us-central1',
                                                             gcsPath=template_path,
                                                             body=body)
         response = request.execute()
