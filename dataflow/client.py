@@ -49,3 +49,23 @@ class DataFlow(object):
                                                                         body=body)
         response = request.execute()
         return response
+
+    def list_jobs(self, filter_='UNKNOWN'):
+        """Returns a list of jobs.
+
+        Args:
+            filter_: options are UNKNOWN (all jobs ordered in descending order by JobUuid),
+                ALL (returns running jobs first order by creation timestamp, then returns
+                terminated jobs ordered by creation timestamp), TERMINATED (returns jobs
+                that have a terminated state ordered by termination timestamp), ACTIVE
+                (returns jobs that are running ordered by creation timestamp). Raises a
+                TypeError if a wrong filter_ is passed.
+
+        Returns:
+            list[dict]
+        """
+
+        request = self.client.projects().jobs().aggregated(projectId=self.project_id,
+                                                           filter=filter_)
+        response = request.execute()
+        return response['jobs']
