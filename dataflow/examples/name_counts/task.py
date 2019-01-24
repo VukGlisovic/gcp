@@ -6,21 +6,22 @@ Creating the a whl file from the any package can be done with:
 python setup.py bdist_wheel
 
 Example parameters for your script to run on google cloud:
---project=test-project
+--project=[YOUR-PROJECT]
 --runner=DataflowRunner
---input_path=gs://test_bucket/sub_folder/name_file_*
---output_path=gs://test_bucket/sub_folder/output.txt
---temp_location=gs://test_bucket/dataflow/temp
---staging_location=gs://test_bucket/dataflow/templates/insert_weather_data
+--input_path=gs://name_counts_example/data/inputs/name_file_*
+--output_path=gs://name_counts_example/data/outputs/output_{}.txt
+--temp_location=gs://name_counts_example/dataflow/temp
+--staging_location=gs://name_counts_example/dataflow/templates/name_counts
 --requirements_file=requirements.txt
 --extra_package=additional_package-0.1-py2-none-any.whl
 --save_main_session
 
 
 For local development, this would suffice:
---project=test-project
+--project=[YOUR-PROJECT]
 --runner=DirectRunner
---input_path=gs://test_bucket/sub_folder/name_file_*
+--input_path=gs://name_counts_example/data/inputs/name_file_*
+--output_path=gs://name_counts_example/data/outputs/output_{}.txt
 """
 
 import sys
