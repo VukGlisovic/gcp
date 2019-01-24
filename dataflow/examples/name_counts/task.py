@@ -5,7 +5,18 @@ temp_location and runner.
 Creating the a whl file from the any package can be done with:
 python setup.py bdist_wheel
 
-Example parameters for your script to run on google cloud:
+Example parameters for your script to create a template:
+--project=[YOUR-PROJECT]
+--region=europe-west1
+--runner=DataflowRunner
+--setup_file=setup.py
+--temp_location=gs://name_counts_example/dataflow/temp
+--staging_location=gs://name_counts_example/dataflow/staging
+--template_location=gs://name_counts_example/dataflow/templates/name_counts
+--max-workers=2
+--worker-machine-type=n1-standard-1
+
+Example parameters for instantly running on google cloud:
 --project=[YOUR-PROJECT]
 --region=europe-west1
 --runner=DataflowRunner
@@ -13,13 +24,11 @@ Example parameters for your script to run on google cloud:
 --input_path=gs://name_counts_example/data/inputs/name_file_*
 --output_path=gs://name_counts_example/data/outputs/output_{}.txt
 --temp_location=gs://name_counts_example/dataflow/temp
---staging_location=gs://name_counts_example/dataflow/staging
---template_location=gs://name_counts_example/dataflow/templates/name_counts
---requirements_file=requirements.txt
---extra_package=additional_package-0.1-py2-none-any.whl
---max-workers=2
---worker-machine-type=n1-standard-1
---save_main_session
+--requirements_file=requirements.txt  # optional
+--extra_package=additional_package-0.1-py2-none-any.whl  # optional
+--max-workers=2  # optional
+--worker-machine-type=n1-standard-1  # optional
+--save_main_session  # optional
 
 
 For local development, this would suffice:
