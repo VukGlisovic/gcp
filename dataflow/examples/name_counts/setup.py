@@ -1,12 +1,12 @@
 import setuptools
 
-__version__ = '0.1'
 
 setuptools.setup(
     name='name_counts',
-    version=__version__,
+    version='1.0',
     author='Vuk Glisovic',
     author_email='GlisovicVuk@gmail.com',
+    url='https://github.com',
     install_requires=[],
     packages=setuptools.find_packages()
 )
