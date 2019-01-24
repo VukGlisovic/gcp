@@ -18,6 +18,7 @@ Example parameters for your script to run on google cloud:
 --requirements_file=requirements.txt
 --extra_package=additional_package-0.1-py2-none-any.whl
 --max-workers=2
+--worker-machine-type=n1-standard-1
 --save_main_session
 
 
