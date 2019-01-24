@@ -21,7 +21,7 @@ class GetFirstName(beam.DoFn):
     def process(self, element, *args, **kwargs):
         name, age = element
         first_name = name.split(' ')[0]
-        yield first_name, age
+        yield first_name, int(age)
 
 
 class GetLastName(beam.DoFn):
@@ -32,5 +32,5 @@ class GetLastName(beam.DoFn):
     def process(self, element, *args, **kwargs):
         name, age = element
         last_name = name.split(' ', 1)[1]
-        yield last_name, age
+        yield last_name, int(age)
 

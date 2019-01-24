@@ -39,10 +39,10 @@ from transform_functions import SplitAndFilterNames, GetFirstName, GetLastName
 def run():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input_path',
-                        default='gs://name_counts_example/name_files/inputs/name_file_*',
+                        default='gs://name_counts_example/data/inputs/name_file_*',
                         help='String or regular expression pointing towards one or more files.')
     parser.add_argument('--output_path_template',
-                        default='gs://name_counts_example/output_{}.txt',
+                        default='gs://name_counts_example/data/output_{}.txt',
                         help='Blob where the outputs will be written to. It should contain two curly brackets that will be replaced.')
 
     known_args, pipeline_args = parser.parse_known_args()
@@ -89,7 +89,7 @@ def run():
     last_names = (names_filtered
                   | 'Get Last Names' >> beam.ParDo(GetLastName())
                   | 'Group By Last Name' >> beam.CombinePerKey(min)
-                  | 'Store Last Name Result' >> beam.io.WriteToText(gcs_output_path_first_names, num_shards=1)
+                  | 'Store Last Name Result' >> beam.io.WriteToText(gcs_output_path_last_names, num_shards=1)
                   )
 
     result = p.run()
