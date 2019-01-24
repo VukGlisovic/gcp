@@ -54,12 +54,12 @@ class DataFlow(object):
         """Returns a list of jobs.
 
         Args:
-            filter_: options are UNKNOWN (all jobs ordered in descending order by JobUuid),
+            filter_ (str): options are UNKNOWN (all jobs ordered in descending order by JobUuid),
                 ALL (returns running jobs first order by creation timestamp, then returns
-                terminated jobs ordered by creation timestamp), TERMINATED (returns jobs
-                that have a terminated state ordered by termination timestamp), ACTIVE
-                (returns jobs that are running ordered by creation timestamp). Raises a
-                TypeError if a wrong filter_ is passed.
+                terminated jobs ordered by creation timestamp), TERMINATED (returns jobs that
+                have a terminated state ordered by termination timestamp), ACTIVE (returns jobs
+                that are running ordered by creation timestamp). Raises a TypeError if a wrong
+                filter_ is passed.
 
         Returns:
             list[dict]
@@ -69,3 +69,19 @@ class DataFlow(object):
                                                            filter=filter_)
         response = request.execute()
         return response['jobs']
+
+    def get_job(self, job_id):
+        """Gets a specific job from google cloud dataflow. The response will display information
+        about the status of the job, job metadata and more.
+
+        Args:
+            job_id (str):
+
+        Returns:
+            dict
+        """
+        request = self.client.projects().locations().jobs().get(projectId=self.project_id,
+                                                                location=self.region,
+                                                                jobId=job_id)
+        response = request.execute()
+        return response
