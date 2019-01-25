@@ -1,5 +1,11 @@
 # Google Cloud Platform
 
+My main goal in this project, is experimenting with various products the google cloud platform
+provides. I want to understand how the products work and how they can be applied to different
+problems.
+
+Note that this project is under constant development and that features can change all the time.
+
 Based on python 3 environment:
 * app_engine: scalable applications on managed serverless platform
 * bigquery: highly scalable data warehouse for analytics
@@ -10,4 +16,5 @@ Based on python 3 environment:
 * pubsub: processing event streams at scale for real-time stream analytics
 
 Based on python 2 environment:
-* dataflow: fulle managed service for transforming and enriching data in batch and streaming modes. (apache-beam is not well enough supported yet for python 3)
+* dataflow: fulle managed service for transforming and enriching data in batch and streaming modes. 
+(apache-beam is not well enough supported yet for python 3)
