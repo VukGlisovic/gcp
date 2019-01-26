@@ -19,7 +19,7 @@ parser.add_argument('--labels_file',
 parser.add_argument('--model_dir',
                     help='Output directory for storing checkpoints and model.',
                     type=str,
-                    default=os.path.join(os.environ['HOME'], 'gcp/cloud_ml/mnist/outputs/'))
+                    default=os.path.join(os.environ['HOME'], 'gcp/cloud_ml/examples/mnist/outputs/'))
 parser.add_argument('--learning_rate',
                     help='Learning rate for the optimizer.',
                     type=float,

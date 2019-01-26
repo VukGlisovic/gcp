@@ -9,7 +9,7 @@ class CloudStorage(object):
     def __init__(self, project_id):
         self.client = storage.Client(project_id)
 
-    def create_bucket(self, bucket_name, location=None):
+    def create_bucket(self, bucket_name, location):
         """Creates a new bucket.
 
         Args:
