@@ -52,7 +52,7 @@ class CloudML(object):
         request = self.client.projects().models().delete(name=path)
         return self.execute_request(request)
 
-    def create_training_job(self, job_id, scale_tier, package_uris, python_module, region, job_dir, runtime_version, python_version, job_arguments=[], hyperparameter_spec=None):
+    def start_training_job(self, job_id, scale_tier, package_uris, python_module, region, job_dir, runtime_version, python_version, job_arguments=[], hyperparameter_spec=None):
         """Creates a trainig job on cloud ml.
 
         Args:
