@@ -12,7 +12,7 @@ parser.add_argument('--train_data_folder',
                     help='Path to folder containing the training data. This folder should have '
                          'two files: features.tfrecord and labels.tfrecord',
                     type=str,
-                    default='../data/train/features.tfrecord')
+                    default='../data/train/')
 parser.add_argument('--evaluation_data_folder',
                     help='Path to folder containing the evaluation data. This folder should likewise'
                          'containt two files.',
