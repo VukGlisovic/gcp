@@ -42,7 +42,8 @@ def decode_label(label):
 
 
 def input_fn(features_file, labels_file, epochs=1, batch_size=32, buffer_size=50):
-    """Creates a dataset for training and evaluating your model.
+    """Creates a tensorflow dataset for training and evaluating your
+    model.
 
     Args:
         features_file (str):
