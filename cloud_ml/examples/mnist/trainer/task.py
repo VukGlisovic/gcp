@@ -1,7 +1,7 @@
 import os
 import logging
 import argparse
-import model as m
+from .model import model_fn, input_fn
 import tensorflow as tf
 
 logging.basicConfig(level=logging.INFO)
@@ -43,16 +43,16 @@ def run():
     """
     params = dict(learning_rate=learning_rate)
     logging.info("Creating mnist classification model.")
-    classifier = tf.estimator.Estimator(model_fn=m.model_fn,
+    classifier = tf.estimator.Estimator(model_fn=model_fn,
                                         model_dir=model_dir,
                                         params=params)
 
     logging.info("Starting training of mnist model.")
     logging.info("You can checkout tensorboard with the following command:\ntensorboard --logdir='%s'", model_dir)
-    classifier.train(input_fn=lambda: m.input_fn(features_file, labels_file, epochs=1, batch_size=32, buffer_size=50))
+    classifier.train(input_fn=lambda: input_fn(features_file, labels_file, epochs=1, batch_size=32, buffer_size=50))
 
     logging.info("Evaluate accuracy of the model.")
-    classifier.evaluate(input_fn=lambda: m.input_fn('../data/test/features.tfrecord', '../data/test/labels.tfrecord', epochs=1, batch_size=50, buffer_size=0))
+    classifier.evaluate(input_fn=lambda: input_fn('../data/test/features.tfrecord', '../data/test/labels.tfrecord', epochs=1, batch_size=50, buffer_size=0))
 
 
 if __name__ == '__main__':
