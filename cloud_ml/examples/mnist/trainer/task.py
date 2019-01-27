@@ -1,7 +1,7 @@
 import os
 import logging
 import argparse
-from .model import model_fn, input_fn
+from . import model as m
 import tensorflow as tf
 
 logging.basicConfig(level=logging.INFO)
@@ -12,10 +12,10 @@ parser.add_argument('--train_data_folder',
                     help='Path to folder containing the training data. This folder should have '
                          'two files: features.tfrecord and labels.tfrecord',
                     type=str,
-                    default='../data/train/')
+                    default=os.path.join(os.environ['HOME'], 'gcp/cloud_ml/examples/mnist/data/train/'))
 parser.add_argument('--evaluation_data_folder',
                     help='Path to folder containing the evaluation data. This folder should likewise'
-                         'containt two files.',
+                         'containt two files. If not provided, no evaluation will be done.',
                     type=str,
                     default='')
 parser.add_argument('--model_dir',
@@ -51,7 +51,7 @@ def run():
     """
     params = dict(learning_rate=learning_rate)
     logging.info("Creating mnist classification model.")
-    classifier = tf.estimator.Estimator(model_fn=model_fn,
+    classifier = tf.estimator.Estimator(model_fn=m.model_fn,
                                         model_dir=model_dir,
                                         params=params)
 
@@ -59,14 +59,16 @@ def run():
     logging.info("You can checkout tensorboard with the following command:\ntensorboard --logdir='%s'", model_dir)
     train_features_file = os.path.join(train_data_folder, 'features.tfrecord')
     train_labels_file = os.path.join(train_data_folder, 'labels.tfrecord')
-    classifier.train(input_fn=lambda: input_fn(train_features_file, train_labels_file, epochs=nr_epochs, batch_size=32, buffer_size=50))
+    classifier.train(input_fn=lambda: m.input_fn(train_features_file, train_labels_file, epochs=nr_epochs, batch_size=32, buffer_size=50))
 
     if evaluation_data_folder:
         logging.info("Evaluate accuracy of the model.")
         evaluation_features_file = os.path.join(evaluation_data_folder, 'features.tfrecord')
         evaluation_labels_file = os.path.join(evaluation_data_folder, 'labels.tfrecord')
-        result = classifier.evaluate(input_fn=lambda: input_fn(evaluation_features_file, evaluation_labels_file, epochs=1, batch_size=50, buffer_size=0))
+        result = classifier.evaluate(input_fn=lambda: m.input_fn(evaluation_features_file, evaluation_labels_file, epochs=1, batch_size=50, buffer_size=0))
         logging.info("Accuracy on evaluation set: %.3f", result['accuracy'])
+    else:
+        logging.info("No evaluation requested.")
 
 
 if __name__ == '__main__':
