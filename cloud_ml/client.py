@@ -103,6 +103,21 @@ class CloudML(object):
         request = self.client.projects().jobs().create(parent=project_path, body=request_body)
         return self.execute_request(request)
 
+    def get_job(self, job_id):
+        """Method for retrieving a job. This contains information about the
+        input parameters for starting a job and the status of the job (whether
+        it's running or finished, etc).
+
+        Args:
+            job_id (str):
+
+        Returns:
+            dict
+        """
+        path = 'projects/{}/jobs/{}'.format(self.project_id, job_id)
+        request = self.client.projects().jobs().get(name=path)
+        return self.execute_request(request)
+
     @classmethod
     def execute_request(cls, request):
         """Executes the request and returns the response body unless
