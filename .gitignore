@@ -5,3 +5,5 @@ __pycache__
 secret/
 data/
 ve/
+dist/
+*.egg-info/
