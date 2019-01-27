@@ -24,7 +24,7 @@ parser.add_argument('--model_dir',
                     default=os.path.join(os.environ['HOME'], 'gcp/cloud_ml/examples/mnist/outputs/'))
 parser.add_argument('--nr_epochs',
                     help='Number of times to iterate over the entire dataset.',
-                    type=float,
+                    type=int,
                     default=1)
 parser.add_argument('--learning_rate',
                     help='Learning rate for the optimizer.',
