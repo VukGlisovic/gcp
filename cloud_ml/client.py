@@ -66,6 +66,69 @@ class CloudML(object):
         request = self.client.projects().models().get(name=path)
         return self.execute_request(request)
 
+    def create_model_version(self, model_name, version_name, deployment_uri, description=None, runtime_version='1.12', machine_type=None, labels=None, framework='TENSORFLOW', python_version='3.5', min_nodes=0):
+        """Creates a version for a model. If you want this version to be the default
+        version. Use the set_default_version method.
+
+        Args:
+            model_name (str):
+            version_name (str): this must be unique within the model it is created in.
+            deployment_uri (str): cloud storage location of the model to be used for
+                creating a version.
+            description (str):
+            runtime_version (str): cloud ml engine runtime version to use. Options are
+                '1.0', '1.2', '1.4'-'1.12'. This usually depends on the runtime version
+                that was used while training the model. If python version '3.5' is used,
+                then you must use a runtime version of at least '1.4'.
+            machine_type (str): there's only a handful supported machine types. Checkout
+                the cloud ml engine to see what is supported.
+            labels (dict):
+            framework (str): options are TENSORFLOW, SCIKIT_LEARN and XGBOOST.
+            python_version (str): '2.7' or '3.5'.
+            min_nodes (int): number of nodes that will always be up and running. If the
+                traffic gets too high and the node(s) can't keep up, additional nodes
+                will be added. If min_nodes=0, then it will completely scale down if
+                there is no traffic and cost will be zero.
+
+        Returns:
+            dict
+        """
+        path = 'projects/{}/models/{}'.format(self.project_id, model_name)
+
+        auto_scaling = {"minNodes": min_nodes}
+
+        request_body = {"name": version_name,
+                        "deploymentUri": deployment_uri,
+                        "runtimeVersion": runtime_version,
+                        "framework": framework,
+                        "pythonVersion": python_version,
+                        "autoScaling": auto_scaling}
+
+        if description:
+            request_body['description'] = description
+        if machine_type:
+            request_body['machineType'] = machine_type
+        if labels:
+            request_body['labels'] = labels
+
+        request = self.client.projects().models().versions().create(parent=path, body=request_body)
+        return self.execute_request(request)
+
+    def set_default_version(self, model_name, version_name):
+        """Sets the default version of a model.
+
+        Args:
+            model_name (str): model to adjust the default version for.
+            version_name (str): this version will be used as the default version
+                for predictions.
+
+        Returns:
+            dict
+        """
+        path = 'projects/{}/models/{}/versions/{}'.format(self.project_id, model_name, version_name)
+        request = self.client.projects().models().versions().setDefault(name=path)
+        return self.execute_request(request)
+
     def start_training_job(self, job_id, scale_tier, package_uris, python_module, region, job_dir, runtime_version, python_version, job_arguments=[], hyperparameter_spec=None):
         """Creates a trainig job on cloud ml.
 
