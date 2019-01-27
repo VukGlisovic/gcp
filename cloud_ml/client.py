@@ -129,6 +129,20 @@ class CloudML(object):
         request = self.client.projects().models().versions().setDefault(name=path)
         return self.execute_request(request)
 
+    def delete_model_version(self, model_name, version_name):
+        """Deletes a version of a model.
+
+        Args:
+            model_name (str): model to delete the version from.
+            version_name (str):
+
+        Returns:
+            dict
+        """
+        path = 'projects/{}/models/{}/versions/{}'.format(self.project_id, model_name, version_name)
+        request = self.client.projects().models().versions().delete(name=path)
+        return self.execute_request(request)
+
     def start_training_job(self, job_id, scale_tier, package_uris, python_module, region, job_dir, runtime_version, python_version, job_arguments=[], hyperparameter_spec=None):
         """Creates a trainig job on cloud ml.
 
