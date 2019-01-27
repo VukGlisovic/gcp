@@ -52,6 +52,20 @@ class CloudML(object):
         request = self.client.projects().models().delete(name=path)
         return self.execute_request(request)
 
+    def get_model(self, model_name):
+        """Retrieves model information including name, description and the
+        default version (if at least one version has been deployed).
+
+        Args:
+            model_name (str):
+
+        Returns:
+            dict
+        """
+        path = 'projects/{}/models/{}'.format(self.project_id, model_name)
+        request = self.client.projects().models().get(name=path)
+        return self.execute_request(request)
+
     def start_training_job(self, job_id, scale_tier, package_uris, python_module, region, job_dir, runtime_version, python_version, job_arguments=[], hyperparameter_spec=None):
         """Creates a trainig job on cloud ml.
 
@@ -106,7 +120,7 @@ class CloudML(object):
     def get_job(self, job_id):
         """Method for retrieving a job. This contains information about the
         input parameters for starting a job and the status of the job (whether
-        it's running or finished, etc).
+        it's running, succeeded, failed, etc).
 
         Args:
             job_id (str):
