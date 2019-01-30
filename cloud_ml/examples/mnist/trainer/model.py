@@ -119,3 +119,8 @@ def model_fn(features, labels, mode, params=None):
         # Create metrics for evaluation
         eval_metrics_ops = {'accuracy': accuracy}
         return tf.estimator.EstimatorSpec(mode, prediction, loss, eval_metric_ops=eval_metrics_ops)
+
+
+def json_serving_input_fn():
+    inputs = {'image': tf.placeholder(shape=(28, 28, 1), dtype=tf.float32)}
+    return tf.estimator.export.ServingInputReceiver(inputs, inputs)

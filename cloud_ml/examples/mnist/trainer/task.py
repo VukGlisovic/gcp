@@ -71,5 +71,28 @@ def run():
         logging.info("No evaluation requested.")
 
 
+def train_and_evaluate():
+    """Run the training and evaluate using the high level API."""
+    train_features_file = os.path.join(train_data_folder, 'features.tfrecord')
+    train_labels_file = os.path.join(train_data_folder, 'labels.tfrecord')
+    train_input = lambda: m.input_fn(train_features_file, train_labels_file, epochs=nr_epochs, batch_size=32, buffer_size=50)
+
+    evaluation_features_file = os.path.join(evaluation_data_folder, 'features.tfrecord')
+    evaluation_labels_file = os.path.join(evaluation_data_folder, 'labels.tfrecord')
+    eval_input = lambda: m.input_fn(evaluation_features_file, evaluation_labels_file, epochs=1, batch_size=50, buffer_size=0)
+
+    train_spec = tf.estimator.TrainSpec(train_input)
+
+    exporter = tf.estimator.FinalExporter('mnist', m.json_serving_input_fn())
+    eval_spec = tf.estimator.EvalSpec(eval_input, exporters=[exporter], name='mnist-eval')
+
+    params = dict(learning_rate=learning_rate)
+    classifier = tf.estimator.Estimator(model_fn=m.model_fn,
+                                        model_dir=model_dir,
+                                        params=params)
+    tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
+
+
 if __name__ == '__main__':
-    run()
+    # run()
+    train_and_evaluate()
