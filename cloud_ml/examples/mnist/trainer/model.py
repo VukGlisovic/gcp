@@ -122,5 +122,5 @@ def model_fn(features, labels, mode, params=None):
 
 
 def json_serving_input_fn():
-    inputs = {'image': tf.placeholder(shape=(28, 28, 1), dtype=tf.float32)}
-    return tf.estimator.export.ServingInputReceiver(inputs, inputs)
+    image_input = tf.placeholder(shape=(1, 28, 28, 1), dtype=tf.float32)
+    return tf.estimator.export.TensorServingInputReceiver(image_input, image_input)
