@@ -81,16 +81,18 @@ def train_and_evaluate():
     evaluation_labels_file = os.path.join(evaluation_data_folder, 'labels.tfrecord')
     eval_input = lambda: m.input_fn(evaluation_features_file, evaluation_labels_file, epochs=1, batch_size=50, buffer_size=0)
 
-    train_spec = tf.estimator.TrainSpec(train_input)
+    train_spec = tf.estimator.TrainSpec(train_input, max_steps=1)
 
-    exporter = tf.estimator.FinalExporter('mnist', m.json_serving_input_fn())
-    eval_spec = tf.estimator.EvalSpec(eval_input, exporters=[exporter], name='mnist-eval')
+    exporter = tf.estimator.FinalExporter('mnist', m.json_serving_input_fn)
+    eval_spec = tf.estimator.EvalSpec(eval_input, steps=1, exporters=[exporter], name='mnist-eval')
 
     params = dict(learning_rate=learning_rate)
     classifier = tf.estimator.Estimator(model_fn=m.model_fn,
                                         model_dir=model_dir,
                                         params=params)
-    tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
+    eval_result, export_results = tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
+    logging.info("Accuracy: %.3f", eval_result['accuracy'])
+    logging.info("Export location: %s", export_results[-1])
 
 
 if __name__ == '__main__':
