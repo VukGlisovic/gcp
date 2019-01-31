@@ -75,21 +75,30 @@ def train_and_evaluate():
     """Run the training and evaluate using the high level API."""
     train_features_file = os.path.join(train_data_folder, 'features.tfrecord')
     train_labels_file = os.path.join(train_data_folder, 'labels.tfrecord')
-    train_input = lambda: m.input_fn(train_features_file, train_labels_file, epochs=nr_epochs, batch_size=32, buffer_size=50)
+    batch_size = 32
+    train_input = lambda: m.input_fn(train_features_file, train_labels_file, epochs=nr_epochs, batch_size=batch_size, buffer_size=50)
 
     evaluation_features_file = os.path.join(evaluation_data_folder, 'features.tfrecord')
     evaluation_labels_file = os.path.join(evaluation_data_folder, 'labels.tfrecord')
     eval_input = lambda: m.input_fn(evaluation_features_file, evaluation_labels_file, epochs=1, batch_size=50, buffer_size=0)
 
-    train_spec = tf.estimator.TrainSpec(train_input, max_steps=1)
+    # Training set contains 60000 examples
+    max_steps = 60000 * nr_epochs // batch_size
+    logging.info("Max training steps: %s", max_steps)
+    train_spec = tf.estimator.TrainSpec(train_input, max_steps=max_steps)
 
     exporter = tf.estimator.FinalExporter('mnist', m.json_serving_input_fn)
-    eval_spec = tf.estimator.EvalSpec(eval_input, steps=1, exporters=[exporter], name='mnist-eval')
+    eval_spec = tf.estimator.EvalSpec(eval_input, steps=None, exporters=[exporter], name='mnist-eval', throttle_secs=0)
+
+    train_config = tf.estimator.RunConfig(save_checkpoints_steps=500, keep_checkpoint_max=5)
 
     params = dict(learning_rate=learning_rate)
     classifier = tf.estimator.Estimator(model_fn=m.model_fn,
                                         model_dir=model_dir,
-                                        params=params)
+                                        params=params,
+                                        config=train_config)
+
+    logging.info("You can checkout tensorboard with the following command:\ntensorboard --logdir='%s'", model_dir)
     eval_result, export_results = tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
     logging.info("Accuracy: %.3f", eval_result['accuracy'])
     logging.info("Export location: %s", export_results[-1])
