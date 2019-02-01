@@ -82,7 +82,7 @@ def train_and_evaluate():
     evaluation_labels_file = os.path.join(evaluation_data_folder, 'labels.tfrecord')
     eval_input = lambda: m.input_fn(evaluation_features_file, evaluation_labels_file, epochs=1, batch_size=50, buffer_size=0)
 
-    # Training set contains 60000 examples
+    # Training set contains 60000 examples; this will make sure the train input function terminates at the same time with the TrainSpec
     max_steps = 60000 * nr_epochs // batch_size
     logging.info("Max training steps: %s", max_steps)
     train_spec = tf.estimator.TrainSpec(train_input, max_steps=max_steps)
