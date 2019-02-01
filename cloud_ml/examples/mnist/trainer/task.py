@@ -15,9 +15,9 @@ parser.add_argument('--train_data_folder',
                     default=os.path.join(os.environ['HOME'], 'gcp/cloud_ml/examples/mnist/data/train/'))
 parser.add_argument('--evaluation_data_folder',
                     help='Path to folder containing the evaluation data. This folder should likewise'
-                         'containt two files. If not provided, no evaluation will be done.',
+                         'contain two files.',
                     type=str,
-                    default='')
+                    default=os.path.join(os.environ['HOME'], 'gcp/cloud_ml/examples/mnist/data/test/'))
 parser.add_argument('--model_dir',
                     help='Output directory for storing checkpoints and model.',
                     type=str,
@@ -45,34 +45,10 @@ logging.info("Number of epochs: %s", nr_epochs)
 logging.info("Learning rate: %s", learning_rate)
 
 
-def run():
-    """Execute training and evaluation of the model for classifying
-    mnist data.
-    """
-    params = dict(learning_rate=learning_rate)
-    logging.info("Creating mnist classification model.")
-    classifier = tf.estimator.Estimator(model_fn=m.model_fn,
-                                        model_dir=model_dir,
-                                        params=params)
-
-    logging.info("Starting training of mnist model.")
-    logging.info("You can checkout tensorboard with the following command:\ntensorboard --logdir='%s'", model_dir)
-    train_features_file = os.path.join(train_data_folder, 'features.tfrecord')
-    train_labels_file = os.path.join(train_data_folder, 'labels.tfrecord')
-    classifier.train(input_fn=lambda: m.input_fn(train_features_file, train_labels_file, epochs=nr_epochs, batch_size=32, buffer_size=50))
-
-    if evaluation_data_folder:
-        logging.info("Evaluate accuracy of the model.")
-        evaluation_features_file = os.path.join(evaluation_data_folder, 'features.tfrecord')
-        evaluation_labels_file = os.path.join(evaluation_data_folder, 'labels.tfrecord')
-        result = classifier.evaluate(input_fn=lambda: m.input_fn(evaluation_features_file, evaluation_labels_file, epochs=1, batch_size=50, buffer_size=0))
-        logging.info("Accuracy on evaluation set: %.3f", result['accuracy'])
-    else:
-        logging.info("No evaluation requested.")
-
-
 def train_and_evaluate():
-    """Run the training and evaluate using the high level API."""
+    """Execute training and evaluation of the model for classifying
+    mnist data by using the training and evaluate high level API.
+    """
     train_features_file = os.path.join(train_data_folder, 'features.tfrecord')
     train_labels_file = os.path.join(train_data_folder, 'labels.tfrecord')
     batch_size = 32
@@ -105,5 +81,4 @@ def train_and_evaluate():
 
 
 if __name__ == '__main__':
-    # run()
     train_and_evaluate()
