@@ -75,9 +75,7 @@ def train_and_evaluate():
                                         config=train_config)
 
     logging.info("You can checkout tensorboard with the following command:\ntensorboard --logdir='%s'", model_dir)
-    eval_result, export_results = tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
-    logging.info("Accuracy: %.3f", eval_result['accuracy'])
-    logging.info("Export location: %s", export_results[-1])
+    tf.estimator.train_and_evaluate(classifier, train_spec, eval_spec)
 
 
 if __name__ == '__main__':
