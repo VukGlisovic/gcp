@@ -35,9 +35,42 @@ by the cloud ML engine.
 
 ### Deploy your Model in a Docker Container
 
-
+This section is based on Yu Ishikawa his
+<a href="https://github.com/yu-iskw/tensorflow-serving-example">article</a>.
+Basically, we're taking the following steps here to serve our model:
+1. clone the github repository<br/>
 ```bash
-docker run --rm -it -v ${HOME}/repository/gcp/cloud_ml/examples/mnist/models_for_serving:/models \
+git clone git@github.com:yu-iskw/tensorflow-serving-example.git
+```
+This repository will make sure we can build the docker image we need for serving
+the model.
+2. build the docker image<br/>
+```bash
+docker build --rm -f Dockerfile -t tensorflow-serving-example:0.6 .
+```
+Builds a docker image from a dockerfile where `--rm` means remove intermediate
+containers after a successful build, `-f` (relative) path to the dockerfile and
+`-t` the name and optionally a tag of the image.
+3. create a directory named `models_for_serving`<br/>
+This directory will be a shared volume with the container that will be started
+later on. Create the following directory structure:
+```bash
+# copy the variables folder and the graph protocol buffer
+mkdir -p ./models_for_serving/mnist/1
+cp -r ./outputs/export/mnist/[TIMESTAMP]/* ./models_for_serving/mnist/1/
+
+# The file structure should look like this now
+models_for_serving/
+└── mnist
+    └── 1
+        ├── saved_model.pb
+        └── variables
+            ├── variables.data-00000-of-00001
+            └── variables.index
+```
+4. start your container<br/>
+```bash
+docker run --rm -it -v ${HOME}/gcp/cloud_ml/examples/mnist/models_for_serving:/models \
     -e MODEL_NAME=mnist \
     -e MODEL_PATH=/models/mnist \
     -p 8500:8500  \
@@ -45,3 +78,11 @@ docker run --rm -it -v ${HOME}/repository/gcp/cloud_ml/examples/mnist/models_for
     --name tensorflow-serving-example \
     tensorflow-serving-example:0.6
 ```
+This will start a docker container and directly serve your model. `-v` mounts a
+volume to the docker container. `-e` sets environment variables. `-p` forwards
+docker ports to the hosts ports. `--name` of the container. `--rm` removes the
+container when it exits. `-it` basically starts an interactive bash shell in the
+container.
+5. request prediction from your container<br/>
+Use a grpc client to request predictions. You can use the `tools/grpc_client.py`
+to request predictions.
