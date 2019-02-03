@@ -36,8 +36,8 @@ def json_serving_input_fn():
     Returns:
         tf.estimator.export.TensorServingInputReceiver
     """
-    image_input = tf.placeholder(shape=(None, 28, 28), dtype=FEATURES_DTYPE)
-    reshaped_image = tf.reshape(image_input, (None, 28, 28, 1))
+    image_input = tf.placeholder(dtype=FEATURES_DTYPE, shape=(None, 28, 28))
+    reshaped_image = tf.reshape(image_input, shape=(-1, 28, 28, 1))
     preprocessed_image = generic_feature_preprocessing(reshaped_image)
     return tf.estimator.export.TensorServingInputReceiver(preprocessed_image, image_input)
 
