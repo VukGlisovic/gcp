@@ -44,6 +44,7 @@ git clone git@github.com:yu-iskw/tensorflow-serving-example.git
 ```
 This repository will make sure we can build the docker image we need for serving
 the model.
+
 2. build the docker image<br/>
 ```bash
 docker build --rm -f Dockerfile -t tensorflow-serving-example:0.6 .
@@ -51,6 +52,7 @@ docker build --rm -f Dockerfile -t tensorflow-serving-example:0.6 .
 Builds a docker image from a dockerfile where `--rm` means remove intermediate
 containers after a successful build, `-f` (relative) path to the dockerfile and
 `-t` the name and optionally a tag of the image.
+
 3. create a directory named `models_for_serving`<br/>
 This directory will be a shared volume with the container that will be started
 later on. Create the following directory structure:
@@ -68,6 +70,7 @@ models_for_serving/
             ├── variables.data-00000-of-00001
             └── variables.index
 ```
+
 4. start your container<br/>
 ```bash
 docker run --rm -it -v ${HOME}/gcp/cloud_ml/examples/mnist/models_for_serving:/models \
@@ -83,6 +86,7 @@ volume to the docker container. `-e` sets environment variables. `-p` forwards
 docker ports to the hosts ports. `--name` of the container. `--rm` removes the
 container when it exits. `-it` basically starts an interactive bash shell in the
 container.
+
 5. request prediction from your container<br/>
 Use a grpc client to request predictions. You can use the `tools/grpc_client.py`
 to request predictions.
