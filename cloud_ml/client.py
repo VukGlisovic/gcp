@@ -1,3 +1,4 @@
+import os
 from googleapiclient import discovery, errors
 import logging
 
@@ -207,6 +208,26 @@ class CloudML(object):
         """
         path = 'projects/{}/jobs/{}'.format(self.project_id, job_id)
         request = self.client.projects().jobs().get(name=path)
+        return self.execute_request(request)
+
+    def predict(self, model_name, data, version=None):
+        """Request prediction from a model or even a specific model version.
+        If no version is specified, the default version will be used for prediction.
+
+        Args:
+            model_name (str):
+            data (dict or list):
+            version (str): if not specified, then the default version for
+                prediction will be used.
+
+        Returns:
+
+        """
+        path = 'projects/{}/models/{}'.format(self.project_id, model_name)
+        if version:
+            path = os.path.join(path, 'versions/{}'.format(version))
+        request_body = {'instances': data}
+        request = self.client.projects().predict(name=path, body=request_body)
         return self.execute_request(request)
 
     @classmethod
