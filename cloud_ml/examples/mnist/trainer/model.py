@@ -3,6 +3,7 @@ import tensorflow as tf
 
 READ_FEATURES = {'image': tf.FixedLenFeature([], dtype=tf.string)}
 READ_LABELS = {'label': tf.FixedLenFeature([], dtype=tf.int64)}
+FEATURES_DTYPE = tf.float32
 
 
 def decode_image(image):
@@ -23,9 +24,37 @@ def decode_image(image):
     parsed_features = tf.parse_single_example(serialized=image, features=READ_FEATURES)['image']
     decoded_image = tf.decode_raw(parsed_features, tf.uint8)
     decoded_image = tf.reshape(decoded_image, shape=(28, 28, 1), name='reshape_to_28x28x1')
-    decoded_image = tf.cast(decoded_image, tf.float32)
-    decoded_image = decoded_image / 255.0
+    decoded_image = generic_feature_preprocessing(decoded_image)
     return decoded_image
+
+
+def json_serving_input_fn():
+    """Method for serving your serving your tensorflow model. This method
+    gets invoked once you request a prediction from a model that is being
+    served.
+
+    Returns:
+        tf.estimator.export.TensorServingInputReceiver
+    """
+    image_input = tf.placeholder(shape=(None, 28, 28), dtype=FEATURES_DTYPE)
+    reshaped_image = tf.reshape(image_input, (None, 28, 28, 1))
+    preprocessed_image = generic_feature_preprocessing(reshaped_image)
+    return tf.estimator.export.TensorServingInputReceiver(preprocessed_image, image_input)
+
+
+def generic_feature_preprocessing(image_tensor):
+    """Part of the preprocessing that occurs both in the serving graph,
+    as well as in the training/evaluation graph.
+
+    Args:
+        image_tensor (tf.Tensor):
+
+    Returns:
+        tf.Tensor
+    """
+    preprocessed_image_tensor = tf.cast(image_tensor, FEATURES_DTYPE)
+    preprocessed_image_tensor = preprocessed_image_tensor / 255.0
+    return preprocessed_image_tensor
 
 
 def decode_label(label):
@@ -119,8 +148,3 @@ def model_fn(features, labels, mode, params=None):
         # Create metrics for evaluation
         eval_metrics_ops = {'accuracy': accuracy}
         return tf.estimator.EstimatorSpec(mode, prediction, loss, eval_metric_ops=eval_metrics_ops)
-
-
-def json_serving_input_fn():
-    image_input = tf.placeholder(shape=(None, 28, 28, 1), dtype=tf.float32)
-    return tf.estimator.export.TensorServingInputReceiver(image_input, image_input)
