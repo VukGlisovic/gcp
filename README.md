@@ -18,3 +18,10 @@ Based on python 3 environment:
 Based on python 2 environment:
 * dataflow: fulle managed service for transforming and enriching data in batch and streaming modes. 
 (apache-beam is not well enough supported yet for python 3)
+
+
+Every package contains a python client for executing product specific commands (starting jobs, 
+create, read, update, delete operations and more). Every product also contains an examples
+folder which contains usages of the product specific client. Together with the notebooks
+directory, you can check out how to use the python clients and in the end how to use the google
+cloud products.
