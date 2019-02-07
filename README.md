@@ -1,7 +1,7 @@
 # Google Cloud Platform
 
 My main goal in this project, is experimenting with various products the google cloud platform
-provides. I want to understand how the products work and how they can be applied to different
+has to offer. I want to understand how the products work and how they can be applied to different
 problems.
 
 Note that this project is under constant development and that features can change all the time.
@@ -22,6 +22,6 @@ Based on python 2 environment:
 
 Every package contains a python client for executing product specific commands (starting jobs, 
 create, read, update, delete operations and more). Every product also contains an examples
-folder which contains usages of the product specific client. Together with the notebooks
-directory, you can check out how to use the python clients and in the end how to use the google
-cloud products.
+folder (except app_engine which contains apps) which contains usages of the product specific
+client. Together with the notebooks directory, you can check out how to use the python clients and
+in the end how to use the google cloud products.
