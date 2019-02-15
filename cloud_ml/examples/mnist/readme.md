@@ -1,4 +1,4 @@
-# Training MNIST model with Cloud ML Engine
+# Training MNIST Model with Cloud ML Engine
 
 This example guides you through the steps required for training and serving an
 MNIST model with the cloud ML engine.
