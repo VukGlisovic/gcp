@@ -108,7 +108,7 @@ data = pd.get_dummies(data, columns=['Sex'], drop_first=True)
 feature_data = data[data.columns.drop(TARGET_COLUMN)]
 target_data = data[TARGET_COLUMN]
 target_data -= 1
-Xtrain, Xtest, ytrain, ytest = train_test_split(feature_data, target_data, test_size=0.2)
+Xtrain, Xtest, ytrain, ytest = train_test_split(feature_data, target_data, test_size=0.2, random_state=1234)
 
 dtrain = xgb.DMatrix(Xtrain, label=ytrain)
 dtest = xgb.DMatrix(Xtest, label=ytest)
@@ -126,7 +126,7 @@ bst.save_model(model_name)
 
 # Upload the model to cloud storage
 bucket_name, blob_subfolder = model_path.replace('gs://', '').split('/', 1)
-bucket = storage.Client().bucket(model_path)
+bucket = storage.Client().bucket(bucket_name)
 blob_path = os.path.join(blob_subfolder, model_name)
 blob = bucket.blob(blob_path)
 blob.upload_from_filename(model_name)
