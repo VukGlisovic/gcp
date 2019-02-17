@@ -22,4 +22,27 @@ gsutil cp ${HOME}/gcp/cloud_ml/examples/abalones/data/abalone_data.csv gs://abal
 
 For the data preprocessing, nothing too fancy has been done; no outliers were removed,
 no extensive feature engineering has been done. We only one-hot encoded the 'Sex'
-feature column.
+feature column. Checkout `/trainer/train.py` for the full code.
+
+In order to start a training job, we'll use the gcloud command line tool. This
+will also automatically package our training application.
+
+```bash
+JOB_NAME="abalones_$(date +"%Y%m%d_%H%M%S")"
+JOB_DIR="gs://abalone_xgboost_example/outputs"
+TRAINING_PACKAGE_PATH="${HOME}/gcp/cloud_ml/examples/abalones/trainer/"
+MAIN_TRAINER_MODULE="trainer.train"
+
+gcloud ml-engine jobs submit training ${JOB_NAME} \
+    --job-dir ${JOB_DIR} \
+    --package-path ${TRAINING_PACKAGE_PATH} \
+    --module-name ${MAIN_TRAINER_MODULE} \
+    --region europe-west1 \
+    --runtime-version=1.12 \
+    --python-version=3.5 \
+    --scale-tier BASIC \
+    -- \
+    --data_path=gs://abalone_xgboost_example/data/abalone_data.csv \
+    --model_path=gs://abalone_xgboost_example/outputs/
+```
+
