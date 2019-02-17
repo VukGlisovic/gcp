@@ -107,7 +107,6 @@ data = pd.get_dummies(data, columns=['Sex'], drop_first=True)
 
 feature_data = data[data.columns.drop(TARGET_COLUMN)]
 target_data = data[TARGET_COLUMN]
-target_data -= 1
 Xtrain, Xtest, ytrain, ytest = train_test_split(feature_data, target_data, test_size=0.2, random_state=1234)
 
 dtrain = xgb.DMatrix(Xtrain, label=ytrain)
@@ -115,8 +114,8 @@ dtest = xgb.DMatrix(Xtest, label=ytest)
 
 logging.info("Starting training...")
 
-params = {'objective': 'multi:softmax', 'num_class': 29}
-bst = xgb.train(params, dtrain=dtrain, num_boost_round=20, evals=[(dtrain, 'train_set'), (dtest, 'test_set')], verbose_eval=True)
+params = {'objective': 'reg:linear', 'learning_rate': 0.1, 'max_depth': 5, 'colsample_bytree': 0.75, 'alpha': 0., 'lambda': 1.}
+bst = xgb.train(params, dtrain=dtrain, num_boost_round=30, evals=[(dtrain, 'train_set'), (dtest, 'test_set')], early_stopping_rounds=5, verbose_eval=True)
 
 logging.info("Finished training!")
 
