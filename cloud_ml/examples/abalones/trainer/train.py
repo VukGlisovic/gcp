@@ -105,17 +105,22 @@ with open(data_path, 'r') as train_data:
     data = pd.read_csv(train_data, header=None, names=COLUMNS)
 data = pd.get_dummies(data, columns=['Sex'], drop_first=True)
 
+# split the data into a training and test set
 feature_data = data[data.columns.drop(TARGET_COLUMN)]
 target_data = data[TARGET_COLUMN]
 Xtrain, Xtest, ytrain, ytest = train_test_split(feature_data, target_data, test_size=0.2, random_state=1234)
 
+# convert pandas dataframes to xgboost efficient DMatrices
 dtrain = xgb.DMatrix(Xtrain, label=ytrain)
 dtest = xgb.DMatrix(Xtest, label=ytest)
 
 logging.info("Starting training...")
 
+# alpha: L1 regularizer
+# lambda: L2 regularizer
 params = {'objective': 'reg:linear', 'learning_rate': 0.1, 'max_depth': 5, 'colsample_bytree': 0.75, 'alpha': 0., 'lambda': 1.}
-bst = xgb.train(params, dtrain=dtrain, num_boost_round=30, evals=[(dtrain, 'train_set'), (dtest, 'test_set')], early_stopping_rounds=5, verbose_eval=True)
+# early_stopping_rounds: if the test set rmse doesn't decrease twice in a row, then stop training
+bst = xgb.train(params, dtrain=dtrain, num_boost_round=100, evals=[(dtrain, 'train_set'), (dtest, 'test_set')], early_stopping_rounds=2, verbose_eval=True)
 
 logging.info("Finished training!")
 
