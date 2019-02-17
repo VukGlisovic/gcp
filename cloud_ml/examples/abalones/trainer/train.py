@@ -101,8 +101,15 @@ COLUMNS = ['Sex', 'Length', 'Diameter', 'Height', 'Whole weight', 'Shucked weigh
 
 
 # reading data from local or cloud storage path
-with open(data_path, 'r') as train_data:
-    data = pd.read_csv(train_data, header=None, names=COLUMNS)
+if data_path.startswith('gs://'):
+    from io import StringIO
+    bucket_name, blob_path = data_path.replace('gs://', '').split('/', 1)
+    bucket = storage.Client().bucket(bucket_name)
+    blob = bucket.blob(blob_path)
+    string_content = blob.download_as_string().decode('utf-8')
+    data = pd.read_csv(StringIO(string_content), header=None, names=COLUMNS)
+else:
+    data = pd.read_csv(data_path, header=None, names=COLUMNS)
 data = pd.get_dummies(data, columns=['Sex'], drop_first=True)
 
 # split the data into a training and test set

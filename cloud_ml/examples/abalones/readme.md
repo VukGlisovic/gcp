@@ -20,3 +20,6 @@ gsutil mb -l europe-west1 gs://abalone_xgboost_example
 gsutil cp ${HOME}/gcp/cloud_ml/examples/abalones/data/abalone_data.csv gs://abalone_xgboost_example/data/
 ```
 
+For the data preprocessing, nothing too fancy has been done; no outliers were removed,
+no extensive feature engineering has been done. We only one-hot encoded the 'Sex'
+feature column.
