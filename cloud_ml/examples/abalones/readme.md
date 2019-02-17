@@ -3,6 +3,9 @@
 This example shows you how to train an xgboost model and serve it with the cloud
 ml engine.
 
+
+### Get the Data
+
 First let's get the data:
 ```bash
 # general info on the data
@@ -19,6 +22,9 @@ gsutil mb -l europe-west1 gs://abalone_xgboost_example
 # copy data to the bucket
 gsutil cp ${HOME}/gcp/cloud_ml/examples/abalones/data/abalone_data.csv gs://abalone_xgboost_example/data/
 ```
+
+
+### Start a Training Job
 
 For the data preprocessing, nothing too fancy has been done; no outliers were removed,
 no extensive feature engineering has been done. We only one-hot encoded the 'Sex'
@@ -46,3 +52,33 @@ gcloud ml-engine jobs submit training ${JOB_NAME} \
     --model_path=gs://abalone_xgboost_example/outputs/
 ```
 
+
+### Test Model with Local Predictions
+
+This section explains how you can check whether your model is fit for serving
+with the cloud ML engine and to get a preview of what the response of the cloud
+ML engine is going to be. It also saves unnecessary costs if your model is not
+doing as you expect.
+
+Note that you might need a python 2 environment to execute the command below.
+You could create an environment with:
+```bash
+conda create -n "local-predict" xgboost tensorflow
+```
+
+If required, activate this environment and execute the following:
+
+```bash
+gcloud ml-engine local predict \
+    --model-dir gs://abalone_xgboost_example/outputs/ \
+    --json-instances ${HOME}/gcp/cloud_ml/examples/abalones/tools/abalone_examples.txt \
+    --framework XGBOOST
+```
+
+You should get a response that looks similar to:
+```bash
+[10.558841705322266, 8.467399597167969, 11.20057201385498, 10.883077621459961, 9.557068824768066]
+```
+
+
+### Deploy Model
