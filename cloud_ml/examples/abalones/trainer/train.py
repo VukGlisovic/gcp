@@ -132,7 +132,8 @@ bst = xgb.train(params, dtrain=dtrain, num_boost_round=100, evals=[(dtrain, 'tra
 logging.info("Finished training!")
 
 logging.info("Exporting model...")
-model_name = 'xgb_abalones.bst'
+# we have to name it model.pkl, model.joblib or model.bst for the cloud ml engine to be able to handle it
+model_name = 'model.bst'
 bst.save_model(model_name)
 
 # Upload the model to cloud storage
