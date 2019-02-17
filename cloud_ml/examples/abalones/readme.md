@@ -82,3 +82,27 @@ You should get a response that looks similar to:
 
 
 ### Deploy Model
+
+It's time to serve your model with the cloud ML engine. The cloud ML engine
+has `model`s and `version`s. A `model` is a container for `version`s. Let's
+first create a model:
+
+```bash
+gcloud ml-engine models create "predict_abalone_rings"
+```
+
+And create your first version for this model:
+
+```bash
+# note that --model must be the model you just created
+gcloud ml-engine versions create "xgboost_regressor_$(date +"%Y%m%d_%H%M%S")" \
+    --model predict_abalone_rings \
+    --origin gs://abalone_xgboost_example/outputs/ \
+    --runtime-version=1.12 \
+    --framework XGBOOST \
+    --python-version=3.5
+```
+
+
+### Request Prediction
+
