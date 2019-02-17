@@ -7,6 +7,7 @@ ml engine.
 ### Get the Data
 
 First let's get the data:
+
 ```bash
 # general info on the data
 curl https://archive.ics.uci.edu/ml/machine-learning-databases/abalone/abalone.names > info.txt
@@ -16,6 +17,7 @@ curl https://archive.ics.uci.edu/ml/machine-learning-databases/abalone/abalone.d
 ```
 
 Now let's create a bucket where we can store the data and the outputs.
+
 ```bash
 # create a bucket
 gsutil mb -l europe-west1 gs://abalone_xgboost_example
@@ -62,6 +64,7 @@ doing as you expect.
 
 Note that you might need a python 2 environment to execute the command below.
 You could create an environment with:
+
 ```bash
 conda create -n "local-predict" xgboost tensorflow
 ```
@@ -76,6 +79,7 @@ gcloud ml-engine local predict \
 ```
 
 You should get a response that looks similar to:
+
 ```bash
 [10.558841705322266, 8.467399597167969, 11.20057201385498, 10.883077621459961, 9.557068824768066]
 ```
@@ -106,3 +110,16 @@ gcloud ml-engine versions create "xgboost_regressor_$(date +"%Y%m%d_%H%M%S")" \
 
 ### Request Prediction
 
+Let's finish it off by requesting a prediction from our freshly deployed model.
+
+```bash
+# leave --version, this will make sure it uses the default version to predict with
+gcloud ml-engine predict \
+    --model predict_abalone_rings \
+    --json-instances ${HOME}/gcp/cloud_ml/examples/abalones/tools/abalone_examples.txt
+```
+
+This will yield a response similar to when requesting predictions with gcloud
+local predict.
+
+Bravo! Your model is being served!
