@@ -8,8 +8,9 @@ RUN echo "root:vukvukvuk" | chpasswd
 
 # Install all OS dependencies for jupyter notebook server that starts (e.g. download as all possible file formats)
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get -yq dist-upgrade \
- && apt-get install -yq --no-install-recommends \
+RUN apt-get update && \
+    apt-get -yq dist-upgrade && \
+    apt-get install -yq --no-install-recommends \
     wget \
     curl \
     npm \
@@ -20,10 +21,10 @@ RUN apt-get update && apt-get -yq dist-upgrade \
     fonts-liberation \
     nano \
     vim \
-    htop \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/* \
- && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen
+    htop && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen
 
 # Install Tini: https://github.com/krallin/tini
 ENV TINI_VERSION v0.18.0
@@ -75,29 +76,10 @@ RUN cd /tmp && \
 
 # Install jupyter notebook, jupyterlab and ipykernel
 RUN conda install --yes \
-#    'python=2.7' \
     'jupyter' \
     'jupyterlab' \
-    'ipykernel' \
-#    'pandas=0.22.0' \
-#    'seaborn=0.8.1' \
-#    'pulp=1.6.8' \
-#    'statsmodels=0.8.0' \
-#    'scikit-learn=0.19.1' \
-#    'tensorflow=1.6.0' \
-#    'dask=0.17.1' \
-#    'pyarrow=0.8.0' \
-#    'xgboost' \
-#    'lightgbm' \
-#    'h5py' \
-#    'typing=3.6.4' \
-#    'jsonpickle=0.9.6' \
-#    'croniter=0.3.20' \
-#    'iso8601=0.1.12' \
-#    'rfc3339=5.2' \
-#    'googlemaps=2.5.1' \
-#    'retrying=1.3.3' \
-    && conda clean -tipsy && \
+    'ipykernel' && \
+    conda clean -tipsy && \
     npm cache clean && \
     rm -rf $CONDA_DIR/share/jupyter/lab/staging && \
     rm -rf $HOME/.cache/yarn && \
@@ -120,11 +102,11 @@ RUN conda create -n dask --yes \
 #    'h5py'
 
 # The next line creates a jupyter notebook config file and makes it possible to delete notebooks and sets a password
-RUN mkdir "${HOME}/.jupyter" \
-    && echo "c = get_config()" > "${HOME}/.jupyter/jupyter_notebook_config.py" \
-    && echo "c.FileContentsManager.delete_to_trash = False" >> "${HOME}/.jupyter/jupyter_notebook_config.py" \
-    && echo "c.NotebookApp.password = 'sha1:ec87131f6d00:1dcb46ec4fea4e951307437fd2132fd2b0ded802'" >> "${HOME}/.jupyter/jupyter_notebook_config.py" \
-    && echo "c.NotebookApp.notebook_dir = '${HOME}/python_scripts'" >> "${HOME}/.jupyter/jupyter_notebook_config.py"
+RUN mkdir "${HOME}/.jupyter" && \
+    echo "c = get_config()" > "${HOME}/.jupyter/jupyter_notebook_config.py" && \
+    echo "c.FileContentsManager.delete_to_trash = False" >> "${HOME}/.jupyter/jupyter_notebook_config.py" && \
+    echo "c.NotebookApp.password = 'sha1:ec87131f6d00:1dcb46ec4fea4e951307437fd2132fd2b0ded802'" >> "${HOME}/.jupyter/jupyter_notebook_config.py" && \
+    echo "c.NotebookApp.notebook_dir = '${HOME}/python_scripts'" >> "${HOME}/.jupyter/jupyter_notebook_config.py"
 
 # change to root such that we can install new kernels for jupyter notebook
 USER root
@@ -145,8 +127,8 @@ CMD ["start_jupyter.sh"]
 COPY "start_jupyter.sh" "/usr/local/bin/"
 
 # Make script for starting up jupyter executable by USER_ID user
-RUN chmod 755 "/usr/local/bin/start_jupyter.sh" \
-    && fix_permissions.sh $HOME
+RUN chmod 755 "/usr/local/bin/start_jupyter.sh" && \
+    fix_permissions.sh $HOME
 
 # Switch back to USER_ID user to avoid accidental container runs as root
 USER $USER_ID
