@@ -57,7 +57,7 @@ RUN chmod 755 /usr/local/bin/fix_permissions.sh && \
 USER $USER_ID
 
 # Setup work directory for backward-compatibility
-RUN mkdir -p ${HOME}/python_scripts/data && \
+RUN mkdir -p ${HOME}/python_scripts && \
     fix_permissions.sh ${HOME}
 
 ENV MINICONDA_VERSION=latest
