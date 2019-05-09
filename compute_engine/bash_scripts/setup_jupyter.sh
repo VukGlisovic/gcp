@@ -11,7 +11,7 @@ echo "bind '\"\e[A\":history-search-backward'" >> $HOME/.bashrc
 echo "bind '\"\e[B\":history-search-forward'" >> $HOME/.bashrc
 
 # Setup python
-echo "Getting latest python"
+echo "Getting latest miniconda"
 MINICONDA="Miniconda3-latest-Linux-x86_64.sh"
 wget https://repo.continuum.io/miniconda/${MINICONDA}
 chmod 755 ${MINICONDA}
@@ -20,6 +20,8 @@ echo "Installed ${MINICONDA}"
 export PATH="$HOME/miniconda/bin:$PATH"
 echo -e '\n# Add miniconda to path\nexport PATH="$HOME/miniconda/bin:$PATH"' >> $HOME/.bashrc
 rm ${MINICONDA}
+# add conda-forge channel
+conda config --add channels conda-forge
 echo "Installing conda, jupyter and new environment"
 echo y | conda update conda
 echo y | conda update --all
